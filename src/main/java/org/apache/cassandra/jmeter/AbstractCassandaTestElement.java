@@ -119,12 +119,14 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         String _queryType = getQueryType();
         if (SIMPLE.equals(_queryType)) {
 //       stmt.setQueryTimeout(getIntegerQueryTimeout());   // TODO - address this
-            // TODO - set CL
+
+
             // TODO - set page size
 
             ResultSet rs = null;
             try {
                 SimpleStatement stmt = new SimpleStatement(getQuery());
+                stmt.setConsistencyLevel(ConsistencyLevel.valueOf(getConsistencyLevel()));
                 rs = conn.execute(stmt);
                 return getStringFromResultSet(rs).getBytes(ENCODING);
             } finally {
@@ -134,12 +136,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             BoundStatement pstmt = getPreparedStatement(conn);
             setArguments(pstmt);
             ResultSet rs = null;
-            try {
-                rs = conn.execute(pstmt);
-                return getStringFromResultSet(rs).getBytes(ENCODING);
-            } finally {
-                close(rs);
-            }
+            rs = conn.execute(pstmt);
+            return getStringFromResultSet(rs).getBytes(ENCODING);
         } else { // User provided incorrect query type
             throw new UnsupportedOperationException("Unexpected query type: "+_queryType);
         }
@@ -164,9 +162,9 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
             Class<?> javaType = colDefs.getType(i).asJavaClass();
             try {
-                if (javaType == int.class)
+                if (javaType == Integer.class)
                     pstmt.setInt(i, Integer.parseInt(argument));
-                else if (javaType == boolean.class)
+                else if (javaType == Boolean.class)
                     pstmt.setBool(i, Boolean.parseBoolean(argument));
                 else if (javaType == ByteBuffer.class)  {
                     // TODO - figure this out byte buffer
@@ -176,15 +174,15 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     pstmt.setDate(i,CassandraDateFormat.parse(argument));
                 else if (javaType == BigDecimal.class)
                     pstmt.setDecimal(i, new BigDecimal(argument));
-                else if (javaType == double.class)
+                else if (javaType == Double.class)
                     pstmt.setDouble(i, Double.parseDouble(argument));
-                else if (javaType == float.class)
+                else if (javaType == Float.class)
                     pstmt.setFloat(i, Float.parseFloat(argument));
                 else if (javaType == InetAddress.class)  {
                     // TODO - inet address
                     throw new RuntimeException("Not yet implemented - inet address");
                 }
-                else if (javaType == long.class)
+                else if (javaType == Long.class)
                     pstmt.setLong(i, Long.parseLong(argument));
                 else if (javaType == String.class)
                     pstmt.setString(i, argument);
@@ -280,9 +278,9 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         Class<?> javaType = columnType.asJavaClass();
 
 
-        if (javaType == int.class)
+        if (javaType == Integer.class)
             return row.getInt(index);
-        if (javaType == boolean.class)
+        if (javaType == Boolean.class)
             return row.getBool(index);
         if (javaType == ByteBuffer.class)
             return row.getBytes(index);
@@ -290,13 +288,13 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             return row.getDate(index);
         if (javaType == BigDecimal.class)
             return row.getDecimal(index);
-        if (javaType == double.class)
+        if (javaType == Double.class)
             return row.getDouble(index);
-        if (javaType == float.class)
+        if (javaType == Float.class)
             return row.getFloat(index);
         if (javaType == InetAddress.class)
             return row.getInet(index);
-        if (javaType == long.class)
+        if (javaType == Long.class)
             return row.getLong(index);
         if (javaType == String.class)
             return row.getString(index);
@@ -327,9 +325,9 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         StringBuilder sb = new StringBuilder();
 
         int numColumns = rs.getColumnDefinitions().size();
-        for (int i = 1; i <= numColumns; i++) {
-            sb.append(meta.getName(i - 1));
-            if (i==numColumns){
+        for (int i = 0; i < numColumns; i++) {
+            sb.append(meta.getName(i));
+            if (i==numColumns - 1){
                 sb.append('\n');
             } else {
                 sb.append('\t');
@@ -367,13 +365,13 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 //                }
 
                 sb.append(o);
-                if (i==numColumns){
+                if (i==numColumns -1){
                     sb.append('\n');
                 } else {
                     sb.append('\t');
                 }
-                if (i <= varnames.length) { // i starts at 1
-                    String name = varnames[i - 1].trim();
+                if (i < varnames.length) { // i starts at 0
+                    String name = varnames[i].trim();
                     if (name.length()>0){ // Save the value in the variable if present
                         jmvars.put(name+UNDERSCORE+j, o == null ? null : o.toString());
                     }
@@ -382,16 +380,16 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         }
 
         // Remove any additional values from previous sample
-        for(int i=0; i < varnames.length; i++){
-            String name = varnames[i].trim();
-            if (name.length()>0 && jmvars != null){
-                final String varCount = name+"_#"; // $NON-NLS-1$
+        for (String varname : varnames) {
+            String name = varname.trim();
+            if (name.length() > 0 && jmvars != null) {
+                final String varCount = name + "_#"; // $NON-NLS-1$
                 // Get the previous count
                 String prevCount = jmvars.get(varCount);
-                if (prevCount != null){
+                if (prevCount != null) {
                     int prev = Integer.parseInt(prevCount);
-                    for (int n=j+1; n <= prev; n++ ){
-                        jmvars.remove(name+UNDERSCORE+n);
+                    for (int n = j + 1; n <= prev; n++) {
+                        jmvars.remove(name + UNDERSCORE + n);
                     }
                 }
                 jmvars.put(varCount, Integer.toString(j)); // save the current count
@@ -537,6 +535,10 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     public void setConsistencyLevel(String consistencyLevel) {
         this.consistencyLevel = consistencyLevel;
+    }
+
+    public void setSessionName(String sessionName) {
+        this.sessionName = sessionName;
     }
 
     /**

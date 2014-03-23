@@ -44,16 +44,11 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
                 "queryTimeout" // $NON-NLS-1$     // TODO -Check this
                 });
 
-
-//        PropertyDescriptor p = property("dataSource"); // $NON-NLS-1$
-//        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-//        p.setValue(DEFAULT, ""); // $NON-NLS-1$
-
-        PropertyDescriptor p = property("queryArguments"); // $NON-NLS-1$
+        PropertyDescriptor p = property("sessionName"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
-        p = property("sessionName"); // $NON-NLS-1$
+        p = property("queryArguments"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
@@ -78,9 +73,9 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
                 AbstractCassandaTestElement.PREPARED
                 });
 
-      p = property("consistencyLevel"); // $NON-NLS-1$
-      p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-      p.setValue(DEFAULT, "ONE");
+        p = property("consistencyLevel"); // $NON-NLS-1$
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "ONE");
 
         p = property("query", TypeEditor.TextAreaEditor); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);

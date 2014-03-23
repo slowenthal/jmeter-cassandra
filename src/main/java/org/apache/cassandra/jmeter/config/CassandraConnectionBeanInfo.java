@@ -33,14 +33,14 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
     public CassandraConnectionBeanInfo() {
         super(CassandraConnection.class);
     
-        createPropertyGroup("varName", new String[] { "dataSource" });
+        createPropertyGroup("varName", new String[] { "sessionName" });
 
         createPropertyGroup("cluster", new String[] { "contactPoints", "keyspace", "username", "password" });
 
         PropertyDescriptor p = property("contactPoints");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");
-        p = property("dataSource");
+        p = property("sessionName");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");
         p = property("keyspace");

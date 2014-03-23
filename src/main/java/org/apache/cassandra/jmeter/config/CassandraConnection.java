@@ -36,7 +36,9 @@ public class CassandraConnection extends AbstractTestElement
 
     private static final long serialVersionUID = 233L;
 
-    private transient String contactPoints, keyspace, username, password, dataSource;
+    private transient String contactPoints, keyspace, username, password, sessionName;
+
+    // TODO - Add Port Number
 
     /*
      *  The datasource is set up by testStarted and cleared by testEnded.
@@ -70,7 +72,7 @@ public class CassandraConnection extends AbstractTestElement
 
         Session session = CassandraSessionFactory.getSession(contactPoints, keyspace);
 
-        variables.putObject(poolName, session);
+        variables.putObject(sessionName, session);
     }
 
     @Override
@@ -176,11 +178,11 @@ public class CassandraConnection extends AbstractTestElement
     }
 
 
-   public String getDataSource() {
-       return dataSource;
+   public String getSessionName() {
+       return sessionName;
    }
 
-   public void setDataSource(String dataSource) {
-       this.dataSource = dataSource;
+   public void setSessionName(String sessionName) {
+       this.sessionName = sessionName;
    }
 }
