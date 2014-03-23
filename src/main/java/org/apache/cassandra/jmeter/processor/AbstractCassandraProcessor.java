@@ -35,7 +35,7 @@ public abstract class AbstractCassandraProcessor extends AbstractCassandaTestEle
     private static final long serialVersionUID = 232L;
 
     /**
-     * Calls the JDBC code to be executed.
+     * Calls the natvie driver code to be executed.
      */
     protected void process() {
         Session conn = null;

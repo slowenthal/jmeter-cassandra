@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A org.apache.cassandra.jmeter.sampler which understands JDBC database requests.
+ * A org.apache.cassandra.jmeter.sampler which understands Cassandra database requests.
  *
  */
 public class CassandraSampler extends AbstractCassandaTestElement implements Sampler, TestBean, ConfigMergabilityIndicator {
@@ -57,7 +57,7 @@ public class CassandraSampler extends AbstractCassandaTestElement implements Sam
 
     @Override
     public SampleResult sample(Entry e) {
-        log.debug("sampling jdbc");
+        log.debug("sampling CQL");
 
         SampleResult res = new SampleResult();
         res.setSampleLabel(getName());

@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A base class for all JDBC test elements handling the basics of a SQL request.
+ * A base class for all Cassandra test elements handling the basics of a CQL request.
  *
  */
 public abstract class AbstractCassandaTestElement extends AbstractTestElement implements TestStateListener{
@@ -54,10 +54,10 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     // String used to indicate a null value
     private static final String NULL_MARKER =
-            JMeterUtils.getPropDefault("jdbcsampler.nullmarker","]NULL["); // $NON-NLS-1$
+            JMeterUtils.getPropDefault("cassandrasampler.nullmarker","]NULL["); // $NON-NLS-1$
 
     private static final int MAX_OPEN_PREPARED_STATEMENTS =
-            JMeterUtils.getPropDefault("jdbcsampler.maxopenpreparedstatements", 100);
+            JMeterUtils.getPropDefault("cassandrasampler.maxopenpreparedstatements", 100);
 
     protected static final String ENCODING = "UTF-8"; // $NON-NLS-1$
 
@@ -69,16 +69,15 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     public static final String CASSANDRA_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ssZ";
     public static final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
 
-
-    // TODO - do we need this for anything?
-//    static final String ANY = "ANY";
-//    static final String ONE = "ONE";
-//    static final String TWO = "TWO";
-//    static final String THREE = "THREE";
-//    static final String QUORUM = "QUORUM";
-//    static final String LOCAL_ONE = "LOCAL_ONE";
-//    static final String LOCAL_QUORUM = "LOCAL_QUOURM";
-//    static final String EACH_QUORUM = "EACH_QUORUM";
+    static final String ANY = "ANY";
+    static final String ONE = "ONE";
+    static final String TWO = "TWO";
+    static final String THREE = "THREE";
+    static final String QUORUM = "QUORUM";
+    static final String ALL = "ALL";
+    static final String LOCAL_ONE = "LOCAL_ONE";
+    static final String LOCAL_QUORUM = "LOCAL_QUOURM";
+    static final String EACH_QUORUM = "EACH_QUORUM";
 
     private String sessionName = ""; // $NON-NLS-1$
     private String queryArguments = ""; // $NON-NLS-1$
@@ -120,26 +119,23 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         if (SIMPLE.equals(_queryType)) {
 //       stmt.setQueryTimeout(getIntegerQueryTimeout());   // TODO - address this
 
-
             // TODO - set page size
 
             ResultSet rs = null;
-            try {
-                SimpleStatement stmt = new SimpleStatement(getQuery());
-                stmt.setConsistencyLevel(ConsistencyLevel.valueOf(getConsistencyLevel()));
-                rs = conn.execute(stmt);
-                return getStringFromResultSet(rs).getBytes(ENCODING);
-            } finally {
-                close(rs);
-            }
+            SimpleStatement stmt = new SimpleStatement(getQuery());
+            stmt.setConsistencyLevel(getConsistencyLevelCL());
+            rs = conn.execute(stmt);
+            return getStringFromResultSet(rs).getBytes(ENCODING);
+
         } else if (PREPARED.equals(_queryType)) {
             BoundStatement pstmt = getPreparedStatement(conn);
             setArguments(pstmt);
+            pstmt.setConsistencyLevel(getConsistencyLevelCL()) ;
             ResultSet rs = null;
             rs = conn.execute(pstmt);
             return getStringFromResultSet(rs).getBytes(ENCODING);
         } else { // User provided incorrect query type
-            throw new UnsupportedOperationException("Unexpected query type: "+_queryType);
+            throw new UnsupportedOperationException("Unexpected query type: " + _queryType);
         }
     }
 
@@ -189,30 +185,17 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 else if (javaType == UUID.class)
                     pstmt.setUUID(i, UUID.fromString(argument));
                 else if (javaType == BigInteger.class)
-                     pstmt.setVarint(i, new BigInteger(argument));
+                    pstmt.setVarint(i, new BigInteger(argument));
                 else
                     throw new RuntimeException("Unsupported Type: " + javaType);
 
             } catch (ParseException e) {
                 throw new RuntimeException("Could not Convert Argument #" + i + " \"" + argument + "\" to type" + javaType) ;
-            } catch (NullPointerException e) { // thrown by Derby JDBC (at least) if there are no "?" markers in statement
+            } catch (NullPointerException e) {
                 throw new RuntimeException("Could not set argument no: "+(i+1)+" - missing parameter marker?");
             }
         }
     }
-
-
-//    private static int getJdbcType(String jdbcType) throws SQLException {
-//        Integer entry = mapJdbcNameToInt.get(jdbcType.toLowerCase(java.util.Locale.ENGLISH));
-//        if (entry == null) {
-//            try {
-//                entry = Integer.decode(jdbcType);
-//            } catch (NumberFormatException e) {
-//                throw new SQLException("Invalid data type: "+jdbcType);
-//            }
-//        }
-//        return (entry).intValue();
-//    }
 
     private BoundStatement getPreparedStatement(Session conn) {
         return getPreparedStatement(conn,false);
@@ -254,13 +237,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 //        }
 
         return pstmt.bind();
-    }
-
-    private static void closeAllStatements(Collection<PreparedStatement> collection) {
-        // TODO - do we need to close this?
-//        for (PreparedStatement pstmt : collection) {
-//            close(pstmt);
-//        }
     }
 
     private Object getObject ( Row row, int index ) {
@@ -314,8 +290,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * @param rs
      *            ResultSet passed in from a database query
      * @return a Data object
-     * @throws java.sql.SQLException
-     * @throws java.io.UnsupportedEncodingException
      */
 
     private String getStringFromResultSet(ResultSet rs) throws UnsupportedEncodingException {
@@ -533,6 +507,10 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         return consistencyLevel;
     }
 
+    public ConsistencyLevel getConsistencyLevelCL() {
+        return ConsistencyLevel.valueOf(consistencyLevel);
+    }
+
     public void setConsistencyLevel(String consistencyLevel) {
         this.consistencyLevel = consistencyLevel;
     }
@@ -580,10 +558,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     /**
      * Clean cache of PreparedStatements
      */
-    private static final void cleanCache() {
-        for (Map<String, PreparedStatement> element : perConnCache.values()) {
-            closeAllStatements(element.values());
-        }
+    private static void cleanCache() {
         perConnCache.clear();
     }
 

@@ -76,6 +76,18 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         p = property("consistencyLevel"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "ONE");
+        p.setValue(NOT_OTHER,Boolean.TRUE);
+        p.setValue(TAGS,new String[]{
+                AbstractCassandaTestElement.ANY,
+                AbstractCassandaTestElement.ONE,
+                AbstractCassandaTestElement.QUORUM,
+                AbstractCassandaTestElement.TWO,
+                AbstractCassandaTestElement.THREE,
+                AbstractCassandaTestElement.ALL,
+                AbstractCassandaTestElement.LOCAL_ONE,
+                AbstractCassandaTestElement.LOCAL_QUORUM,
+                AbstractCassandaTestElement.EACH_QUORUM
+        });
 
         p = property("query", TypeEditor.TextAreaEditor); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);

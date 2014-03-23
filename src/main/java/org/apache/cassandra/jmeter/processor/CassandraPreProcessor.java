@@ -21,7 +21,7 @@ import org.apache.jmeter.processor.PreProcessor;
 import org.apache.jmeter.testbeans.TestBean;
 
 /**
- * Preprocessor handling JDBC Requests
+ * Preprocessor handling Cassandra Requests
  */
 public class CassandraPreProcessor extends AbstractCassandraProcessor implements TestBean, PreProcessor {
 

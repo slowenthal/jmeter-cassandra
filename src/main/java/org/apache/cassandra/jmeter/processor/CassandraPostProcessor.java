@@ -21,7 +21,7 @@ import org.apache.jmeter.processor.PostProcessor;
 import org.apache.jmeter.testbeans.TestBean;
 
 /**
- * Post org.apache.cassandra.jmeter.processor handling JDBC Requests
+ * Post org.apache.cassandra.jmeter.processor handling Cassandra Requests
  */
 public class CassandraPostProcessor extends AbstractCassandraProcessor implements TestBean, PostProcessor {
 
