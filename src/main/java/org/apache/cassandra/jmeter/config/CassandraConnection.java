@@ -25,12 +25,11 @@ import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.logging.LoggingManager;
-import org.apache.jorphan.util.JOrphanUtils;
 import org.apache.log.Logger;
 
 import java.util.*;
 
-public class DataSourceElement extends AbstractTestElement
+public class CassandraConnection extends AbstractTestElement
     implements ConfigElement, TestStateListener, TestBean
     {
     private static final Logger log = LoggingManager.getLoggerForClass();
@@ -48,7 +47,7 @@ public class DataSourceElement extends AbstractTestElement
     // Keep a record of the pre-thread pools so that they can be disposed of at the end of a test
     private transient Set<ResourceLimitingJdbcDataSource> perThreadPoolSet;
 
-    public DataSourceElement() {
+    public CassandraConnection() {
     }
 
     @Override
@@ -90,7 +89,7 @@ public class DataSourceElement extends AbstractTestElement
       // TODO - Fix this
     @Override
     public Object clone() {
-        DataSourceElement el = (DataSourceElement) super.clone();
+        CassandraConnection el = (CassandraConnection) super.clone();
         return el;
     }
 

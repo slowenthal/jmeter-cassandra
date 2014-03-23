@@ -18,13 +18,12 @@ package org.apache.cassandra.jmeter.processor;/*
 
 import com.datastax.driver.core.Session;
 import org.apache.cassandra.jmeter.AbstractCassandaTestElement;
-import org.apache.cassandra.jmeter.config.DataSourceElement;
+import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.apache.log.Logger;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * As pre- and post-processors essentially do the same this class provides the implementation.
@@ -44,7 +43,7 @@ public abstract class AbstractCassandraProcessor extends AbstractCassandaTestEle
             throw new IllegalArgumentException("Variable Name must not be null in "+getName());
         }
         try {
-            conn = DataSourceElement.getSession(getDataSource());
+            conn = CassandraConnection.getSession(getDataSource());
             execute(conn);
         }  catch (IOException ex) {
             log.warn("IO Problem in  "+ getName() + ": " + ex.toString());

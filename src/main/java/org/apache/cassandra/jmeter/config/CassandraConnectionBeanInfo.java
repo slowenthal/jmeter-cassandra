@@ -20,27 +20,22 @@ package org.apache.cassandra.jmeter.config;/*
  * Created on May 15, 2004
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.testbeans.BeanInfoSupport;
 import org.apache.jmeter.testbeans.gui.TypeEditor;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
 import java.beans.PropertyDescriptor;
-import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
-public class DataSourceElementBeanInfo extends BeanInfoSupport {
+public class CassandraConnectionBeanInfo extends BeanInfoSupport {
     private static final Logger log = LoggingManager.getLoggerForClass();
 
-    public DataSourceElementBeanInfo() {
-        super(DataSourceElement.class);
+    public CassandraConnectionBeanInfo() {
+        super(CassandraConnection.class);
     
         createPropertyGroup("varName", new String[] { "dataSource" });
 
-        createPropertyGroup("database", new String[] { "contactPoints", "keyspace", "username", "password" });
+        createPropertyGroup("cluster", new String[] { "contactPoints", "keyspace", "username", "password" });
 
         PropertyDescriptor p = property("contactPoints");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);

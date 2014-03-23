@@ -20,7 +20,7 @@ package org.apache.cassandra.jmeter.sampler;
 
 import com.datastax.driver.core.Session;
 import org.apache.cassandra.jmeter.AbstractCassandaTestElement;
-import org.apache.cassandra.jmeter.config.DataSourceElement;
+import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.apache.jmeter.config.ConfigTestElement;
 import org.apache.jmeter.engine.util.ConfigMergabilityIndicator;
 import org.apache.jmeter.samplers.Entry;
@@ -81,7 +81,7 @@ public class CassandraSampler extends AbstractCassandaTestElement implements Sam
             }
 
             try {
-                conn = DataSourceElement.getSession(getDataSource());
+                conn = CassandraConnection.getSession(getDataSource());
             } finally {
                 res.latencyEnd(); // use latency to measure connection time
             }
