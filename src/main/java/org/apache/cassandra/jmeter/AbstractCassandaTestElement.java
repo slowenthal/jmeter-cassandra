@@ -16,6 +16,7 @@ package org.apache.cassandra.jmeter;/*
  *
  */
 
+import com.datastax.driver.core.*;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.CSVSaveService;
@@ -28,14 +29,18 @@ import org.apache.log.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.sql.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A base class for all JDBC test elements handling the basics of a SQL request.
- * 
+ *
  */
 public abstract class AbstractCassandaTestElement extends AbstractTestElement implements TestStateListener{
     private static final long serialVersionUID = 235L;
@@ -49,279 +54,182 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     // String used to indicate a null value
     private static final String NULL_MARKER =
-        JMeterUtils.getPropDefault("jdbcsampler.nullmarker","]NULL["); // $NON-NLS-1$
-    
+            JMeterUtils.getPropDefault("jdbcsampler.nullmarker","]NULL["); // $NON-NLS-1$
+
     private static final int MAX_OPEN_PREPARED_STATEMENTS =
-        JMeterUtils.getPropDefault("jdbcsampler.maxopenpreparedstatements", 100); 
+            JMeterUtils.getPropDefault("jdbcsampler.maxopenpreparedstatements", 100);
 
-    private static final String INOUT = "INOUT"; // $NON-NLS-1$
-
-    private static final String OUT = "OUT"; // $NON-NLS-1$
-
-    // TODO - should the encoding be configurable?
     protected static final String ENCODING = "UTF-8"; // $NON-NLS-1$
-
-    // key: name (lowercase) from java.sql.Types; entry: corresponding int value
-    private static final Map<String, Integer> mapJdbcNameToInt;
-    // read-only after class init
-
-    static {
-        // based on e291. Getting the Name of a JDBC Type from javaalmanac.com
-        // http://javaalmanac.com/egs/java.sql/JdbcInt2Str.html
-        mapJdbcNameToInt = new HashMap<String, Integer>();
-
-        //Get all fields in java.sql.Types and store the corresponding int values
-        Field[] fields = java.sql.Types.class.getFields();
-        for (int i=0; i<fields.length; i++) {
-            try {
-                String name = fields[i].getName();
-                Integer value = (Integer)fields[i].get(null);
-                mapJdbcNameToInt.put(name.toLowerCase(java.util.Locale.ENGLISH),value);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e); // should not happen
-            }
-        }
-    }
 
     // Query types (used to communicate with GUI)
     // N.B. These must not be changed, as they are used in the JMX files
-    static final String SELECT   = "Select Statement"; // $NON-NLS-1$
-    static final String UPDATE   = "Update Statement"; // $NON-NLS-1$
-    static final String CALLABLE = "Callable Statement"; // $NON-NLS-1$
-    static final String PREPARED_SELECT = "Prepared Select Statement"; // $NON-NLS-1$
-    static final String PREPARED_UPDATE = "Prepared Update Statement"; // $NON-NLS-1$
-    static final String COMMIT   = "Commit"; // $NON-NLS-1$
-    static final String ROLLBACK = "Rollback"; // $NON-NLS-1$
-    static final String AUTOCOMMIT_FALSE = "AutoCommit(false)"; // $NON-NLS-1$
-    static final String AUTOCOMMIT_TRUE  = "AutoCommit(true)"; // $NON-NLS-1$
+    static final String SIMPLE   = "Simple Statement"; // $NON-NLS-1$
+    static final String PREPARED = "Prepared Statement"; // $NON-NLS-1$
+
+    public static final String CASSANDRA_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ssZ";
+    public static final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
+
+
+    // TODO - do we need this for anything?
+//    static final String ANY = "ANY";
+//    static final String ONE = "ONE";
+//    static final String TWO = "TWO";
+//    static final String THREE = "THREE";
+//    static final String QUORUM = "QUORUM";
+//    static final String LOCAL_ONE = "LOCAL_ONE";
+//    static final String LOCAL_QUORUM = "LOCAL_QUOURM";
+//    static final String EACH_QUORUM = "EACH_QUORUM";
+
 
     private String query = ""; // $NON-NLS-1$
 
     private String dataSource = ""; // $NON-NLS-1$
 
-    private String queryType = SELECT;
+    private String queryType = SIMPLE;
     private String queryArguments = ""; // $NON-NLS-1$
-    private String queryArgumentsTypes = ""; // $NON-NLS-1$
     private String variableNames = ""; // $NON-NLS-1$
     private String resultVariable = ""; // $NON-NLS-1$
     private String queryTimeout = ""; // $NON-NLS-1$
+    private String consistencyLevel = ""; // $NON-NLS-1$
 
     /**
      *  Cache of PreparedStatements stored in a per-connection basis. Each entry of this
      *  cache is another Map mapping the statement string to the actual PreparedStatement.
      *  At one time a Connection is only held by one thread
      */
-    private static final Map<Connection, Map<String, PreparedStatement>> perConnCache =
-            new ConcurrentHashMap<Connection, Map<String, PreparedStatement>>();
+    private static final Map<Session, Map<String, PreparedStatement>> perConnCache =
+            new ConcurrentHashMap<Session, Map<String, PreparedStatement>>();
 
     /**
      * Creates a CassandraSampler.
      */
     protected AbstractCassandaTestElement() {
     }
-    
+
     /**
      * Execute the test element.
-     * 
-     * @param conn a {@link SampleResult} in case the test should sample; <code>null</code> if only execution is requested
-     * @throws UnsupportedOperationException if the user provided incorrect query type 
+     *
+     *
+     * @param conn a {@link org.apache.jmeter.samplers.SampleResult} in case the test should sample; <code>null</code> if only execution is requested
+     * @throws UnsupportedOperationException if the user provided incorrect query type
      */
-    protected byte[] execute(Connection conn) throws SQLException, UnsupportedEncodingException, IOException, UnsupportedOperationException {
-        log.debug("executing jdbc");
-        Statement stmt = null;
-        
-        try {
-            // Based on query return value, get results
-            String _queryType = getQueryType();
-            if (SELECT.equals(_queryType)) {
-                stmt = conn.createStatement();
-                stmt.setQueryTimeout(getIntegerQueryTimeout());
-                ResultSet rs = null;
-                try {
-                    rs = stmt.executeQuery(getQuery());
-                    return getStringFromResultSet(rs).getBytes(ENCODING);
-                } finally {
-                    close(rs);
-                }
-            } else if (CALLABLE.equals(_queryType)) {
-                CallableStatement cstmt = getCallableStatement(conn);
-                int out[]=setArguments(cstmt);
-                // A CallableStatement can return more than 1 ResultSets
-                // plus a number of update counts.
-                boolean hasResultSet = cstmt.execute();
-                String sb = resultSetsToString(cstmt,hasResultSet, out);
-                return sb.getBytes(ENCODING);
-            } else if (UPDATE.equals(_queryType)) {
-                stmt = conn.createStatement();
-                stmt.setQueryTimeout(getIntegerQueryTimeout());
-                stmt.executeUpdate(getQuery());
-                int updateCount = stmt.getUpdateCount();
-                String results = updateCount + " updates";
-                return results.getBytes(ENCODING);
-            } else if (PREPARED_SELECT.equals(_queryType)) {
-                PreparedStatement pstmt = getPreparedStatement(conn);
-                setArguments(pstmt);
-                ResultSet rs = null;
-                try {
-                    rs = pstmt.executeQuery();
-                    return getStringFromResultSet(rs).getBytes(ENCODING);
-                } finally {
-                    close(rs);
-                }
-            } else if (PREPARED_UPDATE.equals(_queryType)) {
-                PreparedStatement pstmt = getPreparedStatement(conn);
-                setArguments(pstmt);
-                pstmt.executeUpdate();
-                String sb = resultSetsToString(pstmt,false,null);
-                return sb.getBytes(ENCODING);
-            } else if (ROLLBACK.equals(_queryType)){
-                conn.rollback();
-                return ROLLBACK.getBytes(ENCODING);
-            } else if (COMMIT.equals(_queryType)){
-                conn.commit();
-                return COMMIT.getBytes(ENCODING);
-            } else if (AUTOCOMMIT_FALSE.equals(_queryType)){
-                conn.setAutoCommit(false);
-                return AUTOCOMMIT_FALSE.getBytes(ENCODING);
-            } else if (AUTOCOMMIT_TRUE.equals(_queryType)){
-                conn.setAutoCommit(true);
-                return AUTOCOMMIT_TRUE.getBytes(ENCODING);
-            } else { // User provided incorrect query type
-                throw new UnsupportedOperationException("Unexpected query type: "+_queryType);
+    protected byte[] execute(Session conn) throws IOException {
+        log.debug("executing cql");
+
+        // Based on query return value, get results
+        String _queryType = getQueryType();
+        if (SIMPLE.equals(_queryType)) {
+//       stmt.setQueryTimeout(getIntegerQueryTimeout());   // TODO - address this
+            // TODO - set CL
+            // TODO - set page size
+
+            ResultSet rs = null;
+            try {
+                SimpleStatement stmt = new SimpleStatement(getQuery());
+                rs = conn.execute(stmt);
+                return getStringFromResultSet(rs).getBytes(ENCODING);
+            } finally {
+                close(rs);
             }
-        } finally {
-            close(stmt);
+        } else if (PREPARED.equals(_queryType)) {
+            BoundStatement pstmt = getPreparedStatement(conn);
+            setArguments(pstmt);
+            ResultSet rs = null;
+            try {
+                rs = conn.execute(pstmt);
+                return getStringFromResultSet(rs).getBytes(ENCODING);
+            } finally {
+                close(rs);
+            }
+        } else { // User provided incorrect query type
+            throw new UnsupportedOperationException("Unexpected query type: "+_queryType);
         }
     }
 
-    private String resultSetsToString(PreparedStatement pstmt, boolean result, int[] out) throws SQLException, UnsupportedEncodingException {
-        StringBuilder sb = new StringBuilder();
-        int updateCount = 0;
-        if (!result) {
-            updateCount = pstmt.getUpdateCount();
-        }
-        do {
-            if (result) {
-                ResultSet rs = null;
-                try {
-                    rs = pstmt.getResultSet();
-                    sb.append(getStringFromResultSet(rs)).append("\n"); // $NON-NLS-1$
-                } finally {
-                    close(rs);
-                }
-            } else {
-                sb.append(updateCount).append(" updates.\n");
-            }
-            result = pstmt.getMoreResults();
-            if (!result) {
-                updateCount = pstmt.getUpdateCount();
-            }
-        } while (result || (updateCount != -1));
-        if (out!=null && pstmt instanceof CallableStatement){
-            ArrayList<Object> outputValues = new ArrayList<Object>();
-            CallableStatement cs = (CallableStatement) pstmt;
-            sb.append("Output variables by position:\n");
-            for(int i=0; i < out.length; i++){
-                if (out[i]!=java.sql.Types.NULL){
-                    Object o = cs.getObject(i+1);
-                    outputValues.add(o);
-                    sb.append("[");
-                    sb.append(i+1);
-                    sb.append("] ");
-                    sb.append(o);
-                    sb.append("\n");
-                }
-            }
-            String varnames[] = getVariableNames().split(COMMA);
-            if(varnames.length > 0) {
-            JMeterVariables jmvars = getThreadContext().getVariables();
-                for(int i = 0; i < varnames.length && i < outputValues.size(); i++) {
-                    String name = varnames[i].trim();
-                    if (name.length()>0){ // Save the value in the variable if present
-                        Object o = outputValues.get(i);
-                        jmvars.put(name, o == null ? null : o.toString());
-                    }
-                }
-            }
-        }
-        return sb.toString();
-    }
-
-
-    private int[] setArguments(PreparedStatement pstmt) throws SQLException, IOException {
+    private void setArguments(BoundStatement pstmt) throws IOException {
         if (getQueryArguments().trim().length()==0) {
-            return new int[]{};
+            return;
         }
+
+        ColumnDefinitions colDefs = pstmt.preparedStatement().getVariables();
+
         String[] arguments = CSVSaveService.csvSplitString(getQueryArguments(), COMMA_CHAR);
-        String[] argumentsTypes = getQueryArgumentsTypes().split(COMMA);
-        if (arguments.length != argumentsTypes.length) {
-            throw new SQLException("number of arguments ("+arguments.length+") and number of types ("+argumentsTypes.length+") are not equal");
+        if (arguments.length !=colDefs.size()) {
+            throw new RuntimeException("number of arguments ("+arguments.length+") and number in stmt (" + colDefs.size() + ") are not equal");
         }
-        int[] outputs= new int[arguments.length];
+
+
         for (int i = 0; i < arguments.length; i++) {
             String argument = arguments[i];
-            String argumentType = argumentsTypes[i];
-            String[] arg = argumentType.split(" ");
-            String inputOutput="";
-            if (arg.length > 1) {
-                argumentType = arg[1];
-                inputOutput=arg[0];
-            }
-            int targetSqlType = getJdbcType(argumentType);
+
+
+            Class<?> javaType = colDefs.getType(i).asJavaClass();
             try {
-                if (!OUT.equalsIgnoreCase(inputOutput)){
-                    if (argument.equals(NULL_MARKER)){
-                        pstmt.setNull(i+1, targetSqlType);
-                    } else {
-                        pstmt.setObject(i+1, argument, targetSqlType);
-                    }
+                if (javaType == int.class)
+                    pstmt.setInt(i, Integer.parseInt(argument));
+                else if (javaType == boolean.class)
+                    pstmt.setBool(i, Boolean.parseBoolean(argument));
+                else if (javaType == ByteBuffer.class)  {
+                    // TODO - figure this out byte buffer
+                    throw new RuntimeException("Not yet implemented - byte buffer");
                 }
-                if (OUT.equalsIgnoreCase(inputOutput)||INOUT.equalsIgnoreCase(inputOutput)) {
-                    CallableStatement cs = (CallableStatement) pstmt;
-                    cs.registerOutParameter(i+1, targetSqlType);
-                    outputs[i]=targetSqlType;
-                } else {
-                    outputs[i]=java.sql.Types.NULL; // can't have an output parameter type null
+                else if (javaType == Date.class)
+                    pstmt.setDate(i,CassandraDateFormat.parse(argument));
+                else if (javaType == BigDecimal.class)
+                    pstmt.setDecimal(i, new BigDecimal(argument));
+                else if (javaType == double.class)
+                    pstmt.setDouble(i, Double.parseDouble(argument));
+                else if (javaType == float.class)
+                    pstmt.setFloat(i, Float.parseFloat(argument));
+                else if (javaType == InetAddress.class)  {
+                    // TODO - inet address
+                    throw new RuntimeException("Not yet implemented - inet address");
                 }
+                else if (javaType == long.class)
+                    pstmt.setLong(i, Long.parseLong(argument));
+                else if (javaType == String.class)
+                    pstmt.setString(i, argument);
+                else if (javaType == UUID.class)
+                    pstmt.setUUID(i, UUID.fromString(argument));
+                else if (javaType == BigInteger.class)
+                     pstmt.setVarint(i, new BigInteger(argument));
+                else
+                    throw new RuntimeException("Unsupported Type: " + javaType);
+
+            } catch (ParseException e) {
+                throw new RuntimeException("Could not Convert Argument #" + i + " \"" + argument + "\" to type" + javaType) ;
             } catch (NullPointerException e) { // thrown by Derby JDBC (at least) if there are no "?" markers in statement
-                throw new SQLException("Could not set argument no: "+(i+1)+" - missing parameter marker?");
+                throw new RuntimeException("Could not set argument no: "+(i+1)+" - missing parameter marker?");
             }
         }
-        return outputs;
     }
 
 
-    private static int getJdbcType(String jdbcType) throws SQLException {
-        Integer entry = mapJdbcNameToInt.get(jdbcType.toLowerCase(java.util.Locale.ENGLISH));
-        if (entry == null) {
-            try {
-                entry = Integer.decode(jdbcType);
-            } catch (NumberFormatException e) {
-                throw new SQLException("Invalid data type: "+jdbcType);
-            }
-        }
-        return (entry).intValue();
-    }
+//    private static int getJdbcType(String jdbcType) throws SQLException {
+//        Integer entry = mapJdbcNameToInt.get(jdbcType.toLowerCase(java.util.Locale.ENGLISH));
+//        if (entry == null) {
+//            try {
+//                entry = Integer.decode(jdbcType);
+//            } catch (NumberFormatException e) {
+//                throw new SQLException("Invalid data type: "+jdbcType);
+//            }
+//        }
+//        return (entry).intValue();
+//    }
 
-
-    private CallableStatement getCallableStatement(Connection conn) throws SQLException {
-        return (CallableStatement) getPreparedStatement(conn,true);
-
-    }
-    private PreparedStatement getPreparedStatement(Connection conn) throws SQLException {
+    private BoundStatement getPreparedStatement(Session conn) {
         return getPreparedStatement(conn,false);
     }
 
-    private PreparedStatement getPreparedStatement(Connection conn, boolean callable) throws SQLException {
+    private BoundStatement getPreparedStatement(Session conn, boolean callable) {
         Map<String, PreparedStatement> preparedStatementMap = perConnCache.get(conn);
         if (null == preparedStatementMap ) {
             @SuppressWarnings("unchecked") // LRUMap is not generic
-            Map<String, PreparedStatement> lruMap = new LRUMap(MAX_OPEN_PREPARED_STATEMENTS) {
+                    Map<String, PreparedStatement> lruMap = new LRUMap(MAX_OPEN_PREPARED_STATEMENTS) {
                 private static final long serialVersionUID = 1L;
                 @Override
                 protected boolean removeLRU(LinkEntry entry) {
                     PreparedStatement preparedStatement = (PreparedStatement)entry.getValue();
-                    close(preparedStatement);
                     return true;
                 }
             };
@@ -332,30 +240,76 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         }
         PreparedStatement pstmt = preparedStatementMap.get(getQuery());
         if (null == pstmt) {
-            if (callable) {
-                pstmt = conn.prepareCall(getQuery());
-            } else {
-                pstmt = conn.prepareStatement(getQuery());
-            }
-            pstmt.setQueryTimeout(getIntegerQueryTimeout());
+            pstmt = conn.prepare(getQuery());
+
+//            pstmt.setQueryTimeout(getIntegerQueryTimeout());
             // PreparedStatementMap is associated to one connection so 
             //  2 threads cannot use the same PreparedStatement map at the same time
             preparedStatementMap.put(getQuery(), pstmt);
-        } else {
-            int timeoutInS = getIntegerQueryTimeout();
-            if(pstmt.getQueryTimeout() != timeoutInS) {
-                pstmt.setQueryTimeout(getIntegerQueryTimeout());
-            }
         }
-        pstmt.clearParameters();
-        return pstmt;
+
+        // TODO - again, how do we handle timeouts?
+//        else {
+//            int timeoutInS = getIntegerQueryTimeout();
+//            if(pstmt.getQueryTimeout() != timeoutInS) {
+//                pstmt.setQueryTimeout(getIntegerQueryTimeout());
+//            }
+//        }
+
+        return pstmt.bind();
     }
 
     private static void closeAllStatements(Collection<PreparedStatement> collection) {
-        for (PreparedStatement pstmt : collection) {
-            close(pstmt);
-        }
+        // TODO - do we need to close this?
+//        for (PreparedStatement pstmt : collection) {
+//            close(pstmt);
+//        }
     }
+
+    private Object getObject ( Row row, int index ) {
+
+
+        if (row.isNull(index))
+            return null;
+
+
+        DataType columnType = row.getColumnDefinitions().getType(index);
+        if (columnType.isCollection()) {
+            throw new RuntimeException("Implement me - collections");
+        }
+
+        Class<?> javaType = columnType.asJavaClass();
+
+
+        if (javaType == int.class)
+            return row.getInt(index);
+        if (javaType == boolean.class)
+            return row.getBool(index);
+        if (javaType == ByteBuffer.class)
+            return row.getBytes(index);
+        if (javaType == Date.class)
+            return row.getDate(index);
+        if (javaType == BigDecimal.class)
+            return row.getDecimal(index);
+        if (javaType == double.class)
+            return row.getDouble(index);
+        if (javaType == float.class)
+            return row.getFloat(index);
+        if (javaType == InetAddress.class)
+            return row.getInet(index);
+        if (javaType == long.class)
+            return row.getLong(index);
+        if (javaType == String.class)
+            return row.getString(index);
+        if (javaType == UUID.class)
+            return row.getUUID(index);
+        if (javaType == BigInteger.class)
+            return row.getVarint(index);
+
+
+        throw new RuntimeException("Type "+ javaType + " is not supported");
+    }
+
 
     /**
      * Gets a Data object from a ResultSet.
@@ -366,21 +320,22 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * @throws java.sql.SQLException
      * @throws java.io.UnsupportedEncodingException
      */
-    private String getStringFromResultSet(ResultSet rs) throws SQLException, UnsupportedEncodingException {
-        ResultSetMetaData meta = rs.getMetaData();
+
+    private String getStringFromResultSet(ResultSet rs) throws UnsupportedEncodingException {
+
+        ColumnDefinitions meta = rs.getColumnDefinitions();
 
         StringBuilder sb = new StringBuilder();
 
-        int numColumns = meta.getColumnCount();
+        int numColumns = rs.getColumnDefinitions().size();
         for (int i = 1; i <= numColumns; i++) {
-            sb.append(meta.getColumnName(i));
+            sb.append(meta.getName(i - 1));
             if (i==numColumns){
                 sb.append('\n');
             } else {
                 sb.append('\t');
             }
         }
-
 
         JMeterVariables jmvars = getThreadContext().getVariables();
         String varnames[] = getVariableNames().split(COMMA);
@@ -390,22 +345,28 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             results = new ArrayList<Map<String,Object> >();
             jmvars.putObject(resultVariable, results);
         }
+
+
         int j = 0;
-        while (rs.next()) {
+        for (Row crow : rs) {
             Map<String, Object> row = null;
             j++;
-            for (int i = 1; i <= numColumns; i++) {
-                Object o = rs.getObject(i);
+            for (int i = 0; i < numColumns; i++) {
+
+                Object o = getObject(crow,i) ;
                 if(results != null) {
                     if(row == null) {
                         row = new HashMap<String, Object>(numColumns);
                         results.add(row);
                     }
-                    row.put(meta.getColumnName(i), o);
+                    row.put(rs.getColumnDefinitions().getName(i), o);
                 }
-                if (o instanceof byte[]) {
-                    o = new String((byte[]) o, ENCODING);
-                }
+
+// TODO - Do we need to do something with bytebuffers
+//                if (rs.getColumnDefinitions().getType(i).asJavaClass() == byte[].class) {
+//                    o = new String((byte[]) row.ge, ENCODING);
+//                }
+
                 sb.append(o);
                 if (i==numColumns){
                     sb.append('\n');
@@ -420,6 +381,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 }
             }
         }
+
         // Remove any additional values from previous sample
         for(int i=0; i < varnames.length; i++){
             String name = varnames[i].trim();
@@ -440,34 +402,17 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         return sb.toString();
     }
 
-    public static void close(Connection c) {
-        try {
-            if (c != null) {
-                c.close();
-            }
-        } catch (SQLException e) {
-            log.warn("Error closing Connection", e);
-        }
+    public static void close(Session c) {
+
+        // TODO - implement some sort of close
     }
 
     public static void close(Statement s) {
-        try {
-            if (s != null) {
-                s.close();
-            }
-        } catch (SQLException e) {
-            log.warn("Error closing Statement " + s.toString(), e);
-        }
+        // TODO - we probably don't need to do anything here
     }
 
     public static void close(ResultSet rs) {
-        try {
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (SQLException e) {
-            log.warn("Error closing ResultSet", e);
-        }
+        // TODO - again, probably no-op
     }
 
     /**
@@ -511,7 +456,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         sb.append("\n");
         sb.append(getQueryArguments());
         sb.append("\n");
-        sb.append(getQueryArgumentsTypes());
         return sb.toString();
     }
 
@@ -558,14 +502,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     public void setQueryArguments(String queryArguments) {
         this.queryArguments = queryArguments;
-    }
-
-    public String getQueryArgumentsTypes() {
-        return queryArgumentsTypes;
-    }
-
-    public void setQueryArgumentsTypes(String queryArgumentsType) {
-        this.queryArgumentsTypes = queryArgumentsType;
     }
 
     /**
@@ -632,7 +568,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     public void testEnded(String host) {
         cleanCache();
     }
-    
+
     /**
      * Clean cache of PreparedStatements
      */

@@ -21,6 +21,8 @@ package org.apache.cassandra.jmeter.processor;/*
  *
  */
 
+import org.apache.cassandra.jmeter.CassandraTestElementBeanInfoSupport;
+
 public class CassandraPreProcessorBeanInfo extends CassandraTestElementBeanInfoSupport {
 
     /**

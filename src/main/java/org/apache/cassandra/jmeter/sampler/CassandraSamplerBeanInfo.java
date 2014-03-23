@@ -22,10 +22,10 @@
  */
 package org.apache.cassandra.jmeter.sampler;
 
-import org.apache.jmeter.protocol.jdbc.JDBCTestElementBeanInfoSupport;
+import org.apache.cassandra.jmeter.CassandraTestElementBeanInfoSupport;
 
 
-public class CassandraSamplerBeanInfo extends JDBCTestElementBeanInfoSupport {
+public class CassandraSamplerBeanInfo extends CassandraTestElementBeanInfoSupport {
 
     /**
      *

@@ -31,28 +31,25 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         super(beanClass);
 
         createPropertyGroup("varName", // $NON-NLS-1$
-                new String[]{"dataSource" }); // $NON-NLS-1$
+                new String[]{"session" }); // $NON-NLS-1$
 
-        createPropertyGroup("sql", // $NON-NLS-1$
+        createPropertyGroup("cql", // $NON-NLS-1$
                 new String[] {
                 "queryType", // $NON-NLS-1$
                 "query", // $NON-NLS-1$
                 "queryArguments", // $NON-NLS-1$
-                "queryArgumentsTypes", // $NON-NLS-1$
                 "variableNames", // $NON-NLS-1$
                 "resultVariable", // $NON-NLS-1$
-                "queryTimeout" // $NON-NLS-1$
+                "consistencyLevel", // $NON-NLS-1$
+                "queryTimeout" // $NON-NLS-1$     // TODO -Check this
                 });
 
-        PropertyDescriptor p = property("dataSource"); // $NON-NLS-1$
-        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
-        p = property("queryArguments"); // $NON-NLS-1$
-        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        p.setValue(DEFAULT, ""); // $NON-NLS-1$
+//        PropertyDescriptor p = property("dataSource"); // $NON-NLS-1$
+//        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+//        p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
-        p = property("queryArgumentsTypes"); // $NON-NLS-1$
+        PropertyDescriptor p = property("queryArguments"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
@@ -70,19 +67,16 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         
         p = property("queryType"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        p.setValue(DEFAULT, AbstractCassandaTestElement.SELECT);
+        p.setValue(DEFAULT, AbstractCassandaTestElement.SIMPLE);
         p.setValue(NOT_OTHER,Boolean.TRUE);
         p.setValue(TAGS,new String[]{
-                AbstractCassandaTestElement.SELECT,
-                AbstractCassandaTestElement.UPDATE,
-                AbstractCassandaTestElement.CALLABLE,
-                AbstractCassandaTestElement.PREPARED_SELECT,
-                AbstractCassandaTestElement.PREPARED_UPDATE,
-                AbstractCassandaTestElement.COMMIT,
-                AbstractCassandaTestElement.ROLLBACK,
-                AbstractCassandaTestElement.AUTOCOMMIT_FALSE,
-                AbstractCassandaTestElement.AUTOCOMMIT_TRUE,
+                AbstractCassandaTestElement.SIMPLE,
+                AbstractCassandaTestElement.PREPARED
                 });
+
+      p = property("consitencyLevel"); // $NON-NLS-1$
+      p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+      p.setValue(DEFAULT, "ONE");
 
         p = property("query", TypeEditor.TextAreaEditor); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);

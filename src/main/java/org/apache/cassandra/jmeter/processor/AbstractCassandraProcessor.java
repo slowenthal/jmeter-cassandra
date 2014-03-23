@@ -16,18 +16,20 @@ package org.apache.cassandra.jmeter.processor;/*
  *
  */
 
+import com.datastax.driver.core.Session;
+import org.apache.cassandra.jmeter.AbstractCassandaTestElement;
+import org.apache.cassandra.jmeter.config.DataSourceElement;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.apache.log.Logger;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
  * As pre- and post-processors essentially do the same this class provides the implementation.
  */
-public abstract class AbstractCassandraProcessor extends AbstractJDBCTestElement {
+public abstract class AbstractCassandraProcessor extends AbstractCassandaTestElement {
     
     private static final Logger log = LoggingManager.getLoggerForClass();
 
@@ -37,21 +39,19 @@ public abstract class AbstractCassandraProcessor extends AbstractJDBCTestElement
      * Calls the JDBC code to be executed.
      */
     protected void process() {
-        Connection conn = null;
+        Session conn = null;
         if(JOrphanUtils.isBlank(getDataSource())) {
             throw new IllegalArgumentException("Variable Name must not be null in "+getName());
         }
         try {
-            conn = DataSourceElement.getConnection(getDataSource());
+            conn = DataSourceElement.getSession(getDataSource());
             execute(conn);
-        } catch (SQLException ex) {
-            log.warn("SQL Problem in  "+ getName() + ": " + ex.toString());
-        } catch (IOException ex) {
+        }  catch (IOException ex) {
             log.warn("IO Problem in  "+ getName() + ": " + ex.toString());
         } catch (UnsupportedOperationException ex) {
             log.warn("Execution Problem in "+ getName() + ": " + ex.toString());
         } finally {
-            AbstractJDBCTestElement.close(conn);
+            AbstractCassandaTestElement.close(conn);
         }
     }
 

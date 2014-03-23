@@ -18,11 +18,11 @@
 
 package org.apache.cassandra.jmeter.sampler;
 
+import com.datastax.driver.core.Session;
 import org.apache.cassandra.jmeter.AbstractCassandaTestElement;
+import org.apache.cassandra.jmeter.config.DataSourceElement;
 import org.apache.jmeter.config.ConfigTestElement;
 import org.apache.jmeter.engine.util.ConfigMergabilityIndicator;
-import org.apache.jmeter.protocol.jdbc.AbstractJDBCTestElement;
-import org.apache.jmeter.protocol.jdbc.config.DataSourceElement;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
@@ -32,8 +32,6 @@ import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.apache.log.Logger;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,7 +73,7 @@ public class CassandraSampler extends AbstractCassandaTestElement implements Sam
 
 
         res.sampleStart();
-        Connection conn = null;
+        Session conn = null;
 
         try {
             if(JOrphanUtils.isBlank(getDataSource())) {
@@ -83,26 +81,22 @@ public class CassandraSampler extends AbstractCassandaTestElement implements Sam
             }
 
             try {
-                conn = DataSourceElement.getConnection(getDataSource());
+                conn = DataSourceElement.getSession(getDataSource());
             } finally {
                 res.latencyEnd(); // use latency to measure connection time
             }
             res.setResponseHeaders(conn.toString());
             res.setResponseData(execute(conn));
-        } catch (SQLException ex) {
-            final String errCode = Integer.toString(ex.getErrorCode());
-            res.setResponseMessage(ex.toString());
-            res.setResponseCode(ex.getSQLState()+ " " +errCode);
-            res.setResponseData(ex.getMessage().getBytes());
-            res.setSuccessful(false);
-        } catch (Exception ex) {
+        }  catch (Exception ex) {
             res.setResponseMessage(ex.toString());
             res.setResponseCode("000");
             res.setResponseData(ex.getMessage().getBytes());
             res.setSuccessful(false);
-        } finally {
-            close(conn);
         }
+// Doesn't apply
+//        finally {
+//            close(conn);
+//        }
 
         // TODO: process warnings? Set Code and Message to success?
         res.sampleEnd();
