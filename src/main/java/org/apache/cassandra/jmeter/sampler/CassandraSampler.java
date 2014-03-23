@@ -76,12 +76,12 @@ public class CassandraSampler extends AbstractCassandaTestElement implements Sam
         Session conn = null;
 
         try {
-            if(JOrphanUtils.isBlank(getDataSource())) {
+            if(JOrphanUtils.isBlank(getSessionName())) {
                 throw new IllegalArgumentException("Variable Name must not be null in "+getName());
             }
 
             try {
-                conn = CassandraConnection.getSession(getDataSource());
+                conn = CassandraConnection.getSession(getSessionName());
             } finally {
                 res.latencyEnd(); // use latency to measure connection time
             }

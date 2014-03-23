@@ -39,11 +39,11 @@ public abstract class AbstractCassandraProcessor extends AbstractCassandaTestEle
      */
     protected void process() {
         Session conn = null;
-        if(JOrphanUtils.isBlank(getDataSource())) {
+        if(JOrphanUtils.isBlank(getSessionName())) {
             throw new IllegalArgumentException("Variable Name must not be null in "+getName());
         }
         try {
-            conn = CassandraConnection.getSession(getDataSource());
+            conn = CassandraConnection.getSession(getSessionName());
             execute(conn);
         }  catch (IOException ex) {
             log.warn("IO Problem in  "+ getName() + ": " + ex.toString());

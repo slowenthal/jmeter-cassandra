@@ -31,7 +31,7 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         super(beanClass);
 
         createPropertyGroup("varName", // $NON-NLS-1$
-                new String[]{"session" }); // $NON-NLS-1$
+                new String[]{"sessionName" }); // $NON-NLS-1$
 
         createPropertyGroup("cql", // $NON-NLS-1$
                 new String[] {
@@ -50,6 +50,10 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
 //        p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
         PropertyDescriptor p = property("queryArguments"); // $NON-NLS-1$
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, ""); // $NON-NLS-1$
+
+        p = property("sessionName"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, ""); // $NON-NLS-1$
 
@@ -74,7 +78,7 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
                 AbstractCassandaTestElement.PREPARED
                 });
 
-      p = property("consitencyLevel"); // $NON-NLS-1$
+      p = property("consistencyLevel"); // $NON-NLS-1$
       p.setValue(NOT_UNDEFINED, Boolean.TRUE);
       p.setValue(DEFAULT, "ONE");
 

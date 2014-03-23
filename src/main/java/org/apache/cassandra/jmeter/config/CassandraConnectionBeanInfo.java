@@ -40,6 +40,9 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
         PropertyDescriptor p = property("contactPoints");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");
+        p = property("dataSource");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
         p = property("keyspace");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");

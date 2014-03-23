@@ -80,17 +80,16 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 //    static final String LOCAL_QUORUM = "LOCAL_QUOURM";
 //    static final String EACH_QUORUM = "EACH_QUORUM";
 
-
-    private String query = ""; // $NON-NLS-1$
-
-    private String dataSource = ""; // $NON-NLS-1$
-
-    private String queryType = SIMPLE;
+    private String sessionName = ""; // $NON-NLS-1$
     private String queryArguments = ""; // $NON-NLS-1$
     private String variableNames = ""; // $NON-NLS-1$
-    private String resultVariable = ""; // $NON-NLS-1$
     private String queryTimeout = ""; // $NON-NLS-1$
+    private String queryType = "";
     private String consistencyLevel = ""; // $NON-NLS-1$
+    private String query = ""; // $NON-NLS-1$
+
+
+    private String resultVariable = ""; // $NON-NLS-1$
 
     /**
      *  Cache of PreparedStatements stored in a per-connection basis. Each entry of this
@@ -470,16 +469,16 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     /**
      * @return Returns the dataSource.
      */
-    public String getDataSource() {
-        return dataSource;
+    public String getSessionName() {
+        return sessionName;
     }
 
     /**
-     * @param dataSource
+     * @param sessionName
      *            The dataSource to set.
      */
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
+    public void setDataSource(String sessionName) {
+        this.sessionName = sessionName;
     }
 
     /**
@@ -532,6 +531,13 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         this.resultVariable = resultVariable;
     }
 
+    public String getConsistencyLevel() {
+        return consistencyLevel;
+    }
+
+    public void setConsistencyLevel(String consistencyLevel) {
+        this.consistencyLevel = consistencyLevel;
+    }
 
     /**
      * {@inheritDoc}

@@ -28,7 +28,16 @@
         </dependency>
     </dependencies>
 
+
+
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <excludes><exclude>**/*.java</exclude></excludes>
+            </resource>
+        </resources>
+
         <plugins>
 
             <plugin>

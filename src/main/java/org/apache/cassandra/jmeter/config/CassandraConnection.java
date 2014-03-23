@@ -1,4 +1,5 @@
-package org.apache.cassandra.jmeter.config;/*
+package org.apache.cassandra.jmeter.config;
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,7 +17,6 @@ package org.apache.cassandra.jmeter.config;/*
  */
 
 import com.datastax.driver.core.Session;
-import org.apache.avalon.excalibur.datasource.ResourceLimitingJdbcDataSource;
 import org.apache.jmeter.config.ConfigElement;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.TestBeanHelper;
@@ -36,7 +36,7 @@ public class CassandraConnection extends AbstractTestElement
 
     private static final long serialVersionUID = 233L;
 
-    private transient String contactPoints, keyspace, username, password;
+    private transient String contactPoints, keyspace, username, password, dataSource;
 
     /*
      *  The datasource is set up by testStarted and cleared by testEnded.
@@ -45,7 +45,6 @@ public class CassandraConnection extends AbstractTestElement
     */
 
     // Keep a record of the pre-thread pools so that they can be disposed of at the end of a test
-    private transient Set<ResourceLimitingJdbcDataSource> perThreadPoolSet;
 
     public CassandraConnection() {
     }
@@ -54,13 +53,6 @@ public class CassandraConnection extends AbstractTestElement
     public void testEnded() {
 
         // TODO - shut down connections
-        if (perThreadPoolSet != null) {// in case
-            for(ResourceLimitingJdbcDataSource dsc : perThreadPoolSet){
-                log.debug("Disposing pool: "+dsc.getInstrumentableName()+" @"+System.identityHashCode(dsc));
-                dsc.dispose();
-            }
-            perThreadPoolSet=null;
-        }
     }
 
     @Override
@@ -89,8 +81,7 @@ public class CassandraConnection extends AbstractTestElement
       // TODO - Fix this
     @Override
     public Object clone() {
-        CassandraConnection el = (CassandraConnection) super.clone();
-        return el;
+        return (CassandraConnection) super.clone();
     }
 
     /*
@@ -104,11 +95,11 @@ public class CassandraConnection extends AbstractTestElement
      }
 
     // used to hold per-thread singleton connection pools
-    private static final ThreadLocal<Map<String, ResourceLimitingJdbcDataSource>> perThreadPoolMap =
-        new ThreadLocal<Map<String, ResourceLimitingJdbcDataSource>>(){
+    private static final ThreadLocal<Map<String, Session>> perThreadPoolMap =
+        new ThreadLocal<Map<String, Session>>(){
         @Override
-        protected Map<String, ResourceLimitingJdbcDataSource> initialValue() {
-            return new HashMap<String, ResourceLimitingJdbcDataSource>();
+        protected Map<String, Session> initialValue() {
+            return new HashMap<String, Session>();
         }
     };
 
@@ -185,4 +176,11 @@ public class CassandraConnection extends AbstractTestElement
     }
 
 
+   public String getDataSource() {
+       return dataSource;
+   }
+
+   public void setDataSource(String dataSource) {
+       this.dataSource = dataSource;
+   }
 }
