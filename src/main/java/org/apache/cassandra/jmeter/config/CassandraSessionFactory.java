@@ -1,8 +1,14 @@
 package org.apache.cassandra.jmeter.config;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
+import com.datastax.driver.core.policies.LoadBalancingPolicy;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * DataStax Academy Sample Application
@@ -11,13 +17,22 @@ import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
  */
 public class CassandraSessionFactory {
 
+  // This class supports both multiple cluster objects for different clusters, as well as
+  // multiple sessions to the same cluster.
+
+  // This does not support multiple cluster objects to the same host that differ in
+  // parameters
+
+  // TODO - When do we shut down a session or cluster??
+
   static CassandraSessionFactory instance;
-  Cluster cluster = null;
-  Session session = null;
+  final Map<String, Cluster> clusters = new HashMap<String, Cluster>();
+  final Map<String, Session> sessions = null;
 
   private void CassandraSessionFactory() {
 
   }
+
 
   public static synchronized CassandraSessionFactory getInstance() {
     if(instance == null) {
@@ -26,24 +41,36 @@ public class CassandraSessionFactory {
     return instance;
   }
 
-  public static synchronized Session getSession(String host, String keyspace) {
+  public static synchronized Session createSession(String host, String keyspace, LoadBalancingPolicy loadBalancingPolicy) {
 
+    String sessionKey = "host"+"keyspace";
     instance = getInstance();
-    if (instance.session == null) {
-    Cluster cluster = Cluster.builder()
-            .addContactPoints(host)
-//            .withLoadBalancingPolicy(new LatencyAwarePolicy.Builder(new RoundRobinPolicy()).build())
-            .withReconnectionPolicy(new ConstantReconnectionPolicy(10000))
-            .build();
+    Session session = instance.sessions.get(sessionKey);
+    if (session == null) {
+        Cluster cluster = instance.clusters.get(host);
 
-      instance.cluster = cluster;
-      if (keyspace != null)
-        instance.session = cluster.connect(keyspace);
+        if (cluster == null) {
+           Cluster.Builder cb = Cluster.builder()
+                    .addContactPoints(host)
+                    .withReconnectionPolicy(new ConstantReconnectionPolicy(10000)) ;
+
+            if (loadBalancingPolicy != null ) {
+                cb = cb.withLoadBalancingPolicy(loadBalancingPolicy);
+            }
+
+            cluster = cb.build();
+
+            instance.clusters.put(host, cluster);
+        }
+
+        if (keyspace != null)
+        session = cluster.connect(keyspace);
       else
-        instance.session = cluster.connect();
+        session = cluster.connect();
 
+        instance.sessions.put(sessionKey, session);
     }
-    return instance.session;
+    return session;
   }
 
 }

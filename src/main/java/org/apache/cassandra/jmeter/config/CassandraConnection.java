@@ -70,7 +70,7 @@ public class CassandraConnection extends AbstractTestElement
         JMeterVariables variables = getThreadContext().getVariables();
         String poolName = getContactPoints();
 
-        Session session = CassandraSessionFactory.getSession(contactPoints, keyspace);
+        Session session = CassandraSessionFactory.createSession(contactPoints, keyspace, null);
 
         variables.putObject(sessionName, session);
     }

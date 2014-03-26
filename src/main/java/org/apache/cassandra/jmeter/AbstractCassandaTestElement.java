@@ -65,6 +65,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     // N.B. These must not be changed, as they are used in the JMX files
     static final String SIMPLE   = "Simple Statement"; // $NON-NLS-1$
     static final String PREPARED = "Prepared Statement"; // $NON-NLS-1$
+    static final String DYNAMIC_BATCH = "Dynamic Batch"; // $NON-NLS-1$
 
     public static final String CASSANDRA_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ssZ";
     public static final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
@@ -86,9 +87,11 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     private String queryType = "";
     private String consistencyLevel = ""; // $NON-NLS-1$
     private String query = ""; // $NON-NLS-1$
-
+    private Integer batchSize = 1;
 
     private String resultVariable = ""; // $NON-NLS-1$
+    private final BatchStatement batchStatement = new BatchStatement();  // TODO - needs to be a map with stmt name
+    private int batchStatmentCount = 0;
 
     /**
      *  Cache of PreparedStatements stored in a per-connection basis. Each entry of this
@@ -111,32 +114,42 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * @param conn a {@link org.apache.jmeter.samplers.SampleResult} in case the test should sample; <code>null</code> if only execution is requested
      * @throws UnsupportedOperationException if the user provided incorrect query type
      */
+
+    // TODO - do we somehow make this OO? Refactor
     protected byte[] execute(Session conn) throws IOException {
         log.debug("executing cql");
 
         // Based on query return value, get results
         String _queryType = getQueryType();
+        ResultSet rs = null;
+        Statement stmt = null;
         if (SIMPLE.equals(_queryType)) {
 //       stmt.setQueryTimeout(getIntegerQueryTimeout());   // TODO - address this
 
             // TODO - set page size
 
-            ResultSet rs = null;
-            SimpleStatement stmt = new SimpleStatement(getQuery());
-            stmt.setConsistencyLevel(getConsistencyLevelCL());
-            rs = conn.execute(stmt);
-            return getStringFromResultSet(rs).getBytes(ENCODING);
+            SimpleStatement sstmt = new SimpleStatement(getQuery());
+            sstmt.setConsistencyLevel(getConsistencyLevelCL());
+            stmt = sstmt;
 
-        } else if (PREPARED.equals(_queryType)) {
+        } else if (PREPARED.equals(_queryType) || DYNAMIC_BATCH.equals(_queryType)) {
             BoundStatement pstmt = getPreparedStatement(conn);
             setArguments(pstmt);
             pstmt.setConsistencyLevel(getConsistencyLevelCL()) ;
-            ResultSet rs = null;
-            rs = conn.execute(pstmt);
-            return getStringFromResultSet(rs).getBytes(ENCODING);
+            stmt = pstmt;
+            if (DYNAMIC_BATCH.equals(_queryType)) {
+                BatchStatement batchStatement = this.batchStatement;  // TODO - replace this.batchstatement with a cache
+                batchStatement.add(pstmt);
+                if (++batchStatmentCount < batchSize)
+                    return null;
+                // Not too oo, but bail if we don't need to execute the batch
+                stmt = batchStatement;
+            }
         } else { // User provided incorrect query type
             throw new UnsupportedOperationException("Unexpected query type: " + _queryType);
         }
+        rs = conn.execute(stmt);
+        return getStringFromResultSet(rs).getBytes(ENCODING);
     }
 
     private void setArguments(BoundStatement pstmt) throws IOException {
@@ -201,6 +214,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         return getPreparedStatement(conn,false);
     }
 
+    // TODO - How thread safe is this - conn gets shared for everyone.
     private BoundStatement getPreparedStatement(Session conn, boolean callable) {
         Map<String, PreparedStatement> preparedStatementMap = perConnCache.get(conn);
         if (null == preparedStatementMap ) {
@@ -213,6 +227,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     return true;
                 }
             };
+
+            // TODO - This is wrong, but is synchronized
             preparedStatementMap = Collections.<String, PreparedStatement>synchronizedMap(lruMap);
             // As a connection is held by only one thread, we cannot already have a 
             // preparedStatementMap put by another thread
@@ -374,12 +390,12 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     }
 
     public static void close(Session c) {
-
         // TODO - implement some sort of close
     }
 
     public static void close(Statement s) {
         // TODO - we probably don't need to do anything here
+        // TODO - submit any open batches
     }
 
     public static void close(ResultSet rs) {
@@ -473,6 +489,14 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     public void setQueryArguments(String queryArguments) {
         this.queryArguments = queryArguments;
+    }
+
+    public String getBatchSize() {
+        return batchSize.toString();
+    }
+
+    public void setBatchSize(String batchSize) {
+        this.batchSize = Integer.parseInt(batchSize);
     }
 
     /**

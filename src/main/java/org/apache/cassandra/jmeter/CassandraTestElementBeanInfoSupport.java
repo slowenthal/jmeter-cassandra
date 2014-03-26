@@ -41,7 +41,8 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
                 "variableNames", // $NON-NLS-1$
                 "resultVariable", // $NON-NLS-1$
                 "consistencyLevel", // $NON-NLS-1$
-                "queryTimeout" // $NON-NLS-1$     // TODO -Check this
+                "queryTimeout", // $NON-NLS-1$     // TODO -Check this
+                "batchSize" // $NON-NLS-1$
                 });
 
         PropertyDescriptor p = property("sessionName"); // $NON-NLS-1$
@@ -63,14 +64,19 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         p = property("queryTimeout"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");
-        
+
+        p = property("batchSize"); // $NON-NLS-1$
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
         p = property("queryType"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, AbstractCassandaTestElement.SIMPLE);
         p.setValue(NOT_OTHER,Boolean.TRUE);
         p.setValue(TAGS,new String[]{
                 AbstractCassandaTestElement.SIMPLE,
-                AbstractCassandaTestElement.PREPARED
+                AbstractCassandaTestElement.PREPARED,
+                AbstractCassandaTestElement.DYNAMIC_BATCH
                 });
 
         p = property("consistencyLevel"); // $NON-NLS-1$
