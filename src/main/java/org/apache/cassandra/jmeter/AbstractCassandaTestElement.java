@@ -161,6 +161,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
         String[] arguments = CSVSaveService.csvSplitString(getQueryArguments(), COMMA_CHAR);
         if (arguments.length !=colDefs.size()) {
+            // TODO - throw a non-transient exception here!
             throw new RuntimeException("number of arguments ("+arguments.length+") and number in stmt (" + colDefs.size() + ") are not equal");
         }
 

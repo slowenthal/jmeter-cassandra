@@ -27,7 +27,7 @@ public class CassandraSessionFactory {
 
   static CassandraSessionFactory instance;
   final Map<String, Cluster> clusters = new HashMap<String, Cluster>();
-  final Map<String, Session> sessions = null;
+  final Map<String, Session> sessions = new HashMap<String, Session>();
 
   private void CassandraSessionFactory() {
 
