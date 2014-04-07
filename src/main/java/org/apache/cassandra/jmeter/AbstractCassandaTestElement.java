@@ -280,7 +280,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         if (javaType == ByteBuffer.class)
             return row.getBytes(index);
         if (javaType == Date.class)
-            return row.getDate(index);
+            return CassandraDateFormat.format(row.getDate(index));
         if (javaType == BigDecimal.class)
             return row.getDecimal(index);
         if (javaType == Double.class)
