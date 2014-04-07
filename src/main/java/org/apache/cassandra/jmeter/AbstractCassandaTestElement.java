@@ -68,7 +68,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     static final String DYNAMIC_BATCH = "Dynamic Batch"; // $NON-NLS-1$
 
     public static final String CASSANDRA_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ssZ";
-    public static final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
+    public final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
 
     static final String ANY = "ANY";
     static final String ONE = "ONE";
@@ -499,7 +499,12 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     }
 
     public void setBatchSize(String batchSize) {
-        this.batchSize = Integer.parseInt(batchSize);
+        try {
+            this.batchSize = Integer.parseInt(batchSize);
+        } catch (NumberFormatException e) {
+            // Not the most kosher thing to do, but prevents annoying exception handling
+            this.batchSize = 1;
+        }
     }
 
     /**
