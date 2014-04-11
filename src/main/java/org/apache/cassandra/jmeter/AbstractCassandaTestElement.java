@@ -90,7 +90,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     private Integer batchSize = 1;
 
     private String resultVariable = ""; // $NON-NLS-1$
-    private final BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.UNLOGGED);  // TODO - needs to be a map with stmt name
+    private transient final BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.UNLOGGED);  // TODO - needs to be a map with stmt name
     private int batchStatmentCount = 0;
 
     /**
