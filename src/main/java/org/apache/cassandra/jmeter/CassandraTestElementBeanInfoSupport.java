@@ -41,7 +41,6 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
                 "variableNames", // $NON-NLS-1$
                 "resultVariable", // $NON-NLS-1$
                 "consistencyLevel", // $NON-NLS-1$
-                "queryTimeout", // $NON-NLS-1$     // TODO -Check this
                 "batchSize" // $NON-NLS-1$
                 });
 
@@ -60,10 +59,6 @@ public abstract class CassandraTestElementBeanInfoSupport extends BeanInfoSuppor
         p = property("resultVariable"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, ""); // $NON-NLS-1$
-
-        p = property("queryTimeout"); // $NON-NLS-1$
-        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        p.setValue(DEFAULT, "");
 
         p = property("batchSize"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);

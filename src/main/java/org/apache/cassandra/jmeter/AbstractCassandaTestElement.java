@@ -83,7 +83,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     private String sessionName = ""; // $NON-NLS-1$
     private String queryArguments = ""; // $NON-NLS-1$
     private String variableNames = ""; // $NON-NLS-1$
-    private String queryTimeout = ""; // $NON-NLS-1$
     private String queryType = "";
     private String consistencyLevel = ""; // $NON-NLS-1$
     private String query = ""; // $NON-NLS-1$
@@ -115,7 +114,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * @throws UnsupportedOperationException if the user provided incorrect query type
      */
 
-    // TODO - do we somehow make this OO? Refactor
     protected byte[] execute(Session conn) throws IOException {
         log.debug("executing cql");
 
@@ -124,7 +122,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         ResultSet rs = null;
         Statement stmt = null;
         if (SIMPLE.equals(_queryType)) {
-//       stmt.setQueryTimeout(getIntegerQueryTimeout());   // TODO - address this
 
             // TODO - set page size
 
@@ -241,19 +238,10 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         if (null == pstmt) {
             pstmt = conn.prepare(getQuery());
 
-//            pstmt.setQueryTimeout(getIntegerQueryTimeout());
-            // PreparedStatementMap is associated to one connection so 
+            // PreparedStatementMap is associated to one connection so
             //  2 threads cannot use the same PreparedStatement map at the same time
             preparedStatementMap.put(getQuery(), pstmt);
         }
-
-        // TODO - again, how do we handle timeouts?
-//        else {
-//            int timeoutInS = getIntegerQueryTimeout();
-//            if(pstmt.getQueryTimeout() != timeoutInS) {
-//                pstmt.setQueryTimeout(getIntegerQueryTimeout());
-//            }
-//        }
 
         return pstmt.bind();
     }
@@ -336,7 +324,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             jmvars.putObject(resultVariable, results);
         }
 
-
         int j = 0;
         for (Row crow : rs) {
             Map<String, Object> row = null;
@@ -405,32 +392,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         // TODO - again, probably no-op
     }
 
-    /**
-     * @return the integer representation queryTimeout
-     */
-    public int getIntegerQueryTimeout() {
-        int timeout = 0;
-        try {
-            timeout = Integer.parseInt(queryTimeout);
-        } catch (NumberFormatException nfe) {
-            timeout = 0;
-        }
-        return timeout;
-    }
-
-    /**
-     * @return the queryTimeout
-     */
-    public String getQueryTimeout() {
-        return queryTimeout ;
-    }
-
-    /**
-     * @param queryTimeout query timeout in seconds
-     */
-    public void setQueryTimeout(String queryTimeout) {
-        this.queryTimeout = queryTimeout;
-    }
 
     public String getQuery() {
         return query;
