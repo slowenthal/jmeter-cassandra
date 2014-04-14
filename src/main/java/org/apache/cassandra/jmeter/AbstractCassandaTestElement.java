@@ -380,15 +380,18 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     }
 
     public static void close(Session c) {
+        int x=1;
         // TODO - implement some sort of close
     }
 
     public static void close(Statement s) {
+        int x=1;
         // TODO - we probably don't need to do anything here
         // TODO - submit any open batches
     }
 
     public static void close(ResultSet rs) {
+        int x=1;
         // TODO - again, probably no-op
     }
 
