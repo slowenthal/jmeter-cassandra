@@ -63,7 +63,7 @@ public class CassandraSessionFactory {
             instance.clusters.put(host, cluster);
         }
 
-        if (keyspace != null)
+      if (keyspace != null && !keyspace.isEmpty())
         session = cluster.connect(keyspace);
       else
         session = cluster.connect();

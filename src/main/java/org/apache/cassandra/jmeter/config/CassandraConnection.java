@@ -66,9 +66,8 @@ public class CassandraConnection extends AbstractTestElement
     @SuppressWarnings("deprecation") // call to TestBeanHelper.prepare() is intentional
     public void testStarted() {
         this.setRunningVersion(true);
-        TestBeanHelper.prepare(this);    // TODO - what's this??
+        TestBeanHelper.prepare(this);
         JMeterVariables variables = getThreadContext().getVariables();
-        String poolName = getContactPoints();
 
         Session session = CassandraSessionFactory.createSession(contactPoints, keyspace, null);
 
