@@ -16,6 +16,7 @@ import java.util.*;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * DataStax Academy Sample Application
@@ -140,6 +141,10 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
         assertEquals(clusterName,"test");
 
         cc.testEnded();
+
+        // Are we closed?
+        assertTrue(session.isClosed(), "Session is Closed");
+
     }
 
     // TODO - multi-connection test

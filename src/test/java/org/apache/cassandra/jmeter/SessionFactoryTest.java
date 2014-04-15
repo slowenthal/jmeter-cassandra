@@ -14,8 +14,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.*;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.*;
 
 /**
  * DataStax Academy Sample Application
@@ -28,6 +27,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
 
     private final static Set<DataType> DATA_TYPE_PRIMITIVES = DataType.allPrimitiveTypes();
     public static final String NODE_1_IP = "127.0.1.1";
+    public static final String SELECT_CLUSTER_NAME = "select cluster_name from system.local where key ='local'";
 
 
     private static boolean exclude(DataType t) {
@@ -58,10 +58,55 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
         assertNotNull(session);
 
         // check that we can select from system.local
-        String clusterName = session.execute("select cluster_name from system.local where key ='local'").one().getString(0);
+        String clusterName = session.execute(SELECT_CLUSTER_NAME).one().getString(0);
 
         assertEquals(clusterName,"test");
 
+        CassandraSessionFactory.closeSession(session);
+
+        // Are we closed?
+        assertTrue(session.isClosed(), "Session is Closed");
+
     }
+
+    @Test
+    public void testSecondConnection() {
+
+        Session session = CassandraSessionFactory.createSession(NODE_1_IP,null,null);
+
+        assertNotNull(session);
+
+        // check that we can select from system.local
+        String clusterName = session.execute(SELECT_CLUSTER_NAME).one().getString(0);
+
+        assertEquals(clusterName,"test");
+
+        Session session2 = CassandraSessionFactory.createSession(NODE_1_IP,null,null);
+
+        // Did we get back the same session?
+        assertEquals(session, session2);
+
+        CassandraSessionFactory.closeSession(session);
+
+        // Are we closed?
+        assertTrue(session.isClosed(), "Session is Closed");
+
+        // Should assert
+        try {
+            CassandraSessionFactory.closeSession(session2);
+        } catch (AssertionError e) {
+            // assertion - ok
+            return;
+        }
+
+        fail("closeSession did not assert");
+
+    }
+
+    // TODO test multiple sessions - same cluster
+    // TODO test multiple sessions - different cluster
+    // TODO test multi-node cluster
+    // TODO duplicate cluster ??
+
 
 }

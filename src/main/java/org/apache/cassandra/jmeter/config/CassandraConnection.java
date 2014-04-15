@@ -53,8 +53,7 @@ public class CassandraConnection extends AbstractTestElement
 
     @Override
     public void testEnded() {
-
-        // TODO - shut down connections
+        CassandraSessionFactory.closeSession(getSession(sessionName));
     }
 
     @Override

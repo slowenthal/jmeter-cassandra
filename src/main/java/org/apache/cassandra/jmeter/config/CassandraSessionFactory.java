@@ -43,7 +43,7 @@ public class CassandraSessionFactory {
 
   public static synchronized Session createSession(String host, String keyspace, LoadBalancingPolicy loadBalancingPolicy) {
 
-    String sessionKey = "host"+"keyspace";
+    String sessionKey = host + keyspace;
     instance = getInstance();
     Session session = instance.sessions.get(sessionKey);
     if (session == null) {
@@ -71,6 +71,20 @@ public class CassandraSessionFactory {
         instance.sessions.put(sessionKey, session);
     }
     return session;
+  }
+
+  public static synchronized void closeSession(Session session) {
+
+      // Find the session
+      for (Map.Entry<String, Session> entry : instance.sessions.entrySet()) {
+           if (entry.getValue() == session) {
+               session.close();
+               instance.sessions.remove(entry.getKey());
+               return;
+           }
+      }
+
+      assert false: "Closing session that is not found";
   }
 
 }
