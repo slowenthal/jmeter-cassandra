@@ -55,7 +55,7 @@ public class CCMBridge {
 
         String ip_prefix = System.getProperty("ipprefix");
         if (ip_prefix == null || ip_prefix.isEmpty()) {
-            ip_prefix = "127.0.0.";
+            ip_prefix = "127.0.1.";
         }
         IP_PREFIX = ip_prefix;
     }

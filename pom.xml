@@ -7,6 +7,12 @@
     <groupId>groupId</groupId>
     <artifactId>jmeter-cassandra</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cassandra.version>2.0.6</cassandra.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -18,11 +24,11 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>2.0.1</version>
             <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--&lt;!&ndash; Provided by JMeter &ndash;&gt;-->
-                    <!--<groupId>org.slf4j</groupId>-->
-                    <!--<artifactId>slf4j-api</artifactId>-->
-                <!--</exclusion>-->
+            <!--<exclusion>-->
+            <!--&lt;!&ndash; Provided by JMeter &ndash;&gt;-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>slf4j-api</artifactId>-->
+            <!--</exclusion>-->
             <!--</exclusions>-->
         </dependency>
         <dependency>
@@ -38,9 +44,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
-
     </dependencies>
 
 
@@ -54,7 +57,6 @@
         </resources>
 
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -78,11 +80,33 @@
             </plugin>
         </plugins>
 
-          <testResources>
+        <testResources>
             <testResource>
-              <directory>src/test/resources</directory>
+                <directory>src/test/resources</directory>
             </testResource>
-          </testResources>
+        </testResources>
     </build>
+
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>Apache License Version 2.0</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:slowenthal/jmeter-cassandra.git</connection>
+        <developerConnection>scm:git:git@github.com:slowenthal/jmeter-cassandra.git</developerConnection>
+        <url>https://github.com/slowenthal/jmeter-cassandra</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Steven Lowenthal</name>
+            <organization>DataStax</organization>
+        </developer>
+    </developers>
 
 </project>

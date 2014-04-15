@@ -4,6 +4,8 @@ import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Session;
 import org.apache.cassandra.jmeter.config.CassandraConnection;
+import org.apache.jmeter.threads.JMeterContextService;
+import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -26,6 +28,7 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
 
     private final static Set<DataType> DATA_TYPE_PRIMITIVES = DataType.allPrimitiveTypes();
     private static final String filePrefix;
+    public static final String NODE_1_IP = "127.0.1.1";
 
     private static void logprop(String prop) {
         System.out.println(prop + "=" + System.getProperty(prop));
@@ -56,6 +59,10 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
             System.out.println("Setting JMeterHome: "+home);
             JMeterUtils.setJMeterHome(home);
             System.setProperty("jmeter.home", home); // needed for scripts
+
+            JMeterVariables vars = new JMeterVariables();
+            JMeterContextService.getContext().setVariables(vars);
+
             JMeterUtils jmu = new JMeterUtils();
             try {
                 jmu.initializeProperties(file);
@@ -97,11 +104,6 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
     private static boolean exclude(DataType t) {
         return t.getName() == DataType.Name.COUNTER;
     }
-//
-//    @BeforeClass
-//    public void beforeClass() {
-//         System.out.println(System.getenv("PATH"));
-//    }
 
     @Override
     protected Collection<String> getTableDefinitions() {
@@ -123,19 +125,21 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
     public void testConnection() {
         CassandraConnection cc = new CassandraConnection();
 
-        cc.setProperty("contactPoints", "localhost");
+        cc.setProperty("contactPoints", NODE_1_IP);
 //        cc.setProperty("keyspace", "testks");
         cc.setProperty("sessionName", "testsession");
 
         cc.testStarted();
 
-        Session session = CassandraConnection.getSession("session");
+        Session session = CassandraConnection.getSession("testsession");
         assertNotNull(session);
 
         // check that we can select from system.local
         String clusterName = session.execute("select cluster_name from system.local where key ='local'").one().getString(0);
 
-        assertEquals(clusterName,"TestCluster");
+        assertEquals(clusterName,"test");
+
+        cc.testEnded();
     }
 
     // TODO - multi-connection test
