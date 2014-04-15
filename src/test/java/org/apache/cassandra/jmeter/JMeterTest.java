@@ -7,6 +7,8 @@ import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -27,12 +29,14 @@ import static org.testng.Assert.assertTrue;
 
 public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
 
+    private static final Logger logger = LoggerFactory.getLogger(JMeterTest.class);
+
     private final static Set<DataType> DATA_TYPE_PRIMITIVES = DataType.allPrimitiveTypes();
     private static final String filePrefix;
     public static final String NODE_1_IP = "127.0.1.1";
 
     private static void logprop(String prop) {
-        System.out.println(prop + "=" + System.getProperty(prop));
+        logger.info(prop + "=" + System.getProperty(prop));
     }
 
 /*
@@ -147,7 +151,9 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
 
     }
 
+    // TODO - userid / password tests
     // TODO - multi-connection test
     // TODO - multi-session test
+
 
 }
