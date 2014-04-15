@@ -1,4 +1,4 @@
-/*
+package com.datastax.driver.core;/*
  *      Copyright (C) 2012 DataStax Inc.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,6 @@
  *   limitations under the License.
  */
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -57,7 +55,7 @@ public class CCMBridge {
 
         String ip_prefix = System.getProperty("ipprefix");
         if (ip_prefix == null || ip_prefix.isEmpty()) {
-            ip_prefix = "127.0.1.";
+            ip_prefix = "127.0.0.";
         }
         IP_PREFIX = ip_prefix;
     }

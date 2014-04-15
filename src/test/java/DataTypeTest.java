@@ -14,9 +14,7 @@
  *   limitations under the License.
  */
 
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.InvalidTypeException;
 import org.testng.annotations.Test;
 
