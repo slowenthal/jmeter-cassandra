@@ -11,8 +11,17 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.UUID;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * DataStax Academy Sample Application
@@ -23,54 +32,78 @@ import static org.testng.Assert.assertTrue;
 public class SimpleQueryTest extends JMeterTest {
 
     public static final String TESTSESSION = "testsession";
+    private static final String KEYSPACE = "k1";
     CassandraConnection cc = null;
 
     Logger logger = LoggerFactory.getLogger(SimpleQueryTest.class);
 
-    @BeforeClass(groups = {"short", "long"})
+    @BeforeClass
     public void beforeClass() {
         super.beforeClass();
 
-        cc = new CassandraConnection();
+        // set up data. The table is of the form:
+        // table <datatypename> (k <datatypename> primary key, v <datatypename))
+        //
+        session.execute("CREATE KEYSPACE " + KEYSPACE + " WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1}");
+        for (Object[] data : provideData()) {
+            session.execute("CREATE TABLE " + KEYSPACE + "." + data[0] + " (k " + data[0] + " PRIMARY KEY, v " + data[0] + ")");
+            session.execute(session.prepare("INSERT INTO " + KEYSPACE + "." + data[0] + " (k, v) VALUES (?, ?)").bind(data[2],data[2]));
+        }
 
+        // Create a cassandra connection
+        cc = new CassandraConnection();
         cc.setProperty("contactPoints", NODE_1_IP);
-        cc.setProperty("keyspace","ks");
+        cc.setProperty("keyspace", KEYSPACE);
         cc.setProperty("sessionName", TESTSESSION);
         cc.testStarted();
     }
 
-
+    // Data for the tables
     @DataProvider(name = "provideQueries")
     public Object[][] provideData() {
 
+        InetAddress ia = null;
+        try {
+            ia = InetAddress.getByName("123.123.123.123") ;
+        } catch (UnknownHostException e) {
+            fail("can't make inet address");
+        }
+
+        ByteBuffer bb = ByteBuffer.allocate(58);
+        bb.putShort((short) 0xCAFE);
+        bb.flip();
+
+
         return new Object[][] {
-                { "ascii", "ascii" },
-                { "bigint", "9223372036854775807" },
-                { "blob", "ascii" },
-                { "boolean",  "true" },
-                { "decimal", "1.23E+8" },
-                { "double", "1.7976931348623157E308" },
-                { "float", "3.4028235E38" },
-                { "inet", "/123.123.123.123" },
-                { "int",  "2147483647" },
-                { "text", "text" },
-                { "timestamp", "1997-08-28 23:14:00-0700" },
-                { "timeuuid", "fe2b4360-28c6-11e2-81c1-0800200c9a66" },
-                { "uuid", "067e6162-3b6f-4ae2-a171-2470b63dff00" },
-                { "varchar", "varchar" },
-                { "varint", "2147483647000" }
+                // table name, string version, native version
+
+                { "ascii", "ascii", "ascii" },
+                { "bigint", "9223372036854775807", Long.MAX_VALUE },
+                { "blob", "ascii", bb },
+                { "boolean",  "true", Boolean.TRUE },
+                { "decimal", "1.23E+8", new BigDecimal("12.3E+7") },
+                { "double", "1.7976931348623157E308",  Double.MAX_VALUE},
+                { "float", "3.4028235E38", Float.MAX_VALUE },
+                { "inet", "/123.123.123.123", ia },
+                { "int",  "2147483647", Integer.MAX_VALUE },
+                { "text", "text", "text" },
+                { "timestamp", "1997-08-28 23:14:00-0700", new Date(872835240000L) },
+                { "timeuuid", "fe2b4360-28c6-11e2-81c1-0800200c9a66", UUID.fromString("FE2B4360-28C6-11E2-81C1-0800200C9A66") },
+                { "uuid", "067e6162-3b6f-4ae2-a171-2470b63dff00", UUID.fromString("067e6162-3b6f-4ae2-a171-2470b63dff00") },
+                { "varchar", "varchar", "varchar" },
+                { "varint", "2147483647000", new BigInteger(Integer.toString(Integer.MAX_VALUE) + "000") }
         };
     }
 
     @Test(dataProvider = "provideQueries")
-    public void testSimpleQuery(String table, String expected) {
+    public void testSimpleQuery(String table, String expected, Object nothing) {
 
         CassandraSampler cs = new CassandraSampler();
         cs.setProperty("sessionName",TESTSESSION);
         cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
         cs.setProperty("resultVariable","rv");
         cs.setProperty("queryType", AbstractCassandaTestElement.SIMPLE);
-        cs.setProperty("query", "select * from " + table);
+        cs.setProperty("query", "SELECT * FROM " + table);
         TestBeanHelper.prepare(cs);
 
         SampleResult res = cs.sample(new Entry());
@@ -82,7 +115,7 @@ public class SimpleQueryTest extends JMeterTest {
     }
 
     @Test(dataProvider = "provideQueries")
-    public void testPreparedQuery(String table, String expected) {
+    public void testPreparedQuery(String table, String expected, Object nothing) {
 
         CassandraSampler cs = new CassandraSampler();
         cs.setProperty("sessionName",TESTSESSION);
@@ -90,14 +123,14 @@ public class SimpleQueryTest extends JMeterTest {
         cs.setProperty("resultVariable","rv");
         cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
         cs.setProperty("queryArguments", expected );
-        cs.setProperty("query", "select * from " + table + " where k = ?");
+        cs.setProperty("query", "SELECT * FROM " + table + " WHERE K = ?");
         TestBeanHelper.prepare(cs);
 
         SampleResult res = cs.sample(new Entry());
         assertTrue(res.isSuccessful(), res.getResponseMessage());
 
         String rowdata = new String(res.getResponseData());
-        logger.info(rowdata);
+        logger.debug(rowdata);
         assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
     }
 
