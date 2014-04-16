@@ -250,7 +250,6 @@ public class JMeterTest extends CCMBridge.PerClassSingleNodeCluster {
     public void beforeClass() {
         super.beforeClass();
 
-
         // Insert sample data
 
         ResultSet rs;
