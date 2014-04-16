@@ -1,5 +1,8 @@
 package org.apache.cassandra.jmeter;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.apache.cassandra.jmeter.sampler.CassandraSampler;
 import org.apache.jmeter.samplers.Entry;
@@ -16,8 +19,7 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -49,6 +51,22 @@ public class SimpleQueryTest extends JMeterTest {
             session.execute("CREATE TABLE " + KEYSPACE + "." + data[0] + " (k " + data[0] + " PRIMARY KEY, v " + data[0] + ")");
             session.execute(session.prepare("INSERT INTO " + KEYSPACE + "." + data[0] + " (k, v) VALUES (?, ?)").bind(data[2],data[2]));
         }
+
+        // set up collection data
+        for (final Object[] data : provideData()) {
+            // sets
+            session.execute("CREATE TABLE " + KEYSPACE + ".set_" + data[0] + " (k " + data[0] + " PRIMARY KEY, v SET<" + data[0] + ">)");
+            session.execute(session.prepare("INSERT INTO " + KEYSPACE + ".set_" + data[0] + " (k, v) VALUES (?, ?)").bind(data[2], Sets.newHashSet(data[2])));
+
+            // lists
+            session.execute("CREATE TABLE " + KEYSPACE + ".list_" + data[0] + " (k " + data[0] + " PRIMARY KEY, v LIST<" + data[0] + ">)");
+            session.execute(session.prepare("INSERT INTO " + KEYSPACE + ".list_" + data[0] + " (k, v) VALUES (?, ?)").bind(data[2], Lists.newArrayList(data[2])));
+
+            // maps
+            session.execute("CREATE TABLE " + KEYSPACE + ".map_" + data[0] + " (k " + data[0] + " PRIMARY KEY, v MAP<" + data[0] + ", "+ data[0] + ">)");
+            session.execute(session.prepare("INSERT INTO " + KEYSPACE + ".map_" + data[0] + " (k, v) VALUES (?, ?)").bind(data[2],new HashMap<Object, Object>() {{ put(data[2], data[2]); }} ));
+        }
+
 
         // Create a cassandra connection
         cc = new CassandraConnection();
