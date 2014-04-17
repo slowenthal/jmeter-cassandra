@@ -152,4 +152,62 @@ public class SimpleQueryTest extends JMeterTest {
         assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
     }
 
+    @Test(dataProvider = "provideQueries")
+    public void testPreparedSetQuery(String table, String expected, Object nothing) {
+
+        CassandraSampler cs = new CassandraSampler();
+        cs.setProperty("sessionName",TESTSESSION);
+        cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
+        cs.setProperty("resultVariable","rv");
+        cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
+        cs.setProperty("queryArguments", expected );
+        cs.setProperty("query", "SELECT * FROM set_" + table + " WHERE K = ?");
+        TestBeanHelper.prepare(cs);
+
+        SampleResult res = cs.sample(new Entry());
+        assertTrue(res.isSuccessful(), res.getResponseMessage());
+
+        String rowdata = new String(res.getResponseData());
+        logger.debug(rowdata);
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+    }
+
+    @Test(dataProvider = "provideQueries")
+    public void testPreparedListQuery(String table, String expected, Object nothing) {
+
+        CassandraSampler cs = new CassandraSampler();
+        cs.setProperty("sessionName",TESTSESSION);
+        cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
+        cs.setProperty("resultVariable","rv");
+        cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
+        cs.setProperty("queryArguments", expected );
+        cs.setProperty("query", "SELECT * FROM list_" + table + " WHERE K = ?");
+        TestBeanHelper.prepare(cs);
+
+        SampleResult res = cs.sample(new Entry());
+        assertTrue(res.isSuccessful(), res.getResponseMessage());
+
+        String rowdata = new String(res.getResponseData());
+        logger.debug(rowdata);
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+    }
+    @Test(dataProvider = "provideQueries")
+    public void testPreparedMapQuery(String table, String expected, Object nothing) {
+
+        CassandraSampler cs = new CassandraSampler();
+        cs.setProperty("sessionName",TESTSESSION);
+        cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
+        cs.setProperty("resultVariable","rv");
+        cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
+        cs.setProperty("queryArguments", expected );
+        cs.setProperty("query", "SELECT * FROM map_" + table + " WHERE K = ?");
+        TestBeanHelper.prepare(cs);
+
+        SampleResult res = cs.sample(new Entry());
+        assertTrue(res.isSuccessful(), res.getResponseMessage());
+
+        String rowdata = new String(res.getResponseData());
+        logger.debug(rowdata);
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+    }
 }
