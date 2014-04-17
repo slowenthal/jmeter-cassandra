@@ -169,7 +169,7 @@ public class SimpleQueryTest extends JMeterTest {
 
         String rowdata = new String(res.getResponseData());
         logger.debug(rowdata);
-        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t{"+ expected +"}\n");
     }
 
     @Test(dataProvider = "provideQueries")
@@ -189,7 +189,7 @@ public class SimpleQueryTest extends JMeterTest {
 
         String rowdata = new String(res.getResponseData());
         logger.debug(rowdata);
-        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t["+ expected +"]\n");
     }
     @Test(dataProvider = "provideQueries")
     public void testPreparedMapQuery(String table, String expected, Object nothing) {
@@ -208,6 +208,6 @@ public class SimpleQueryTest extends JMeterTest {
 
         String rowdata = new String(res.getResponseData());
         logger.debug(rowdata);
-        assertEquals(rowdata, "k\tv\n"+ expected +"\t"+ expected +"\n");
+        assertEquals(rowdata, "k\tv\n"+ expected +"\t{"+ expected + ":" + expected +"}\n");
     }
 }

@@ -246,6 +246,13 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         return pstmt.bind();
     }
 
+    private String stringOf(Object o) {
+       if (o.getClass() == Date.class)
+           return CassandraDateFormat.format(o);
+       else
+           return o.toString();
+    }
+
     private Object getObject ( Row row, int index ) {
 
 
@@ -255,11 +262,47 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
         DataType columnType = row.getColumnDefinitions().getType(index);
         if (columnType.isCollection()) {
-            throw new RuntimeException("Implement me - collections");
+            if (columnType.asJavaClass().isAssignableFrom(Set.class)) {
+                Class<?> innerType = columnType.getTypeArguments().get(0).asJavaClass();
+                StringBuilder sb = new StringBuilder("{");
+                String comma = "";
+                for (Object o : row.getSet(index,innerType)) {
+                    sb.append(comma).append(stringOf(o));
+                    comma=",";
+                }
+                sb.append("}");
+                return sb;
+            }
+            if (columnType.asJavaClass().isAssignableFrom(List.class)) {
+                Class<?> innerType = columnType.getTypeArguments().get(0).asJavaClass();
+                StringBuilder sb = new StringBuilder("[");
+                String comma = "";
+                for (Object o : row.getList(index, innerType)) {
+                    sb.append(comma).append(stringOf(o));
+                    comma=",";
+                }
+                sb.append("]");
+                return sb;
+            }
+            if (columnType.asJavaClass().isAssignableFrom(Map.class)) {
+                Class<?> keyType = columnType.getTypeArguments().get(0).asJavaClass();
+                Class<?> valueType = columnType.getTypeArguments().get(1).asJavaClass();
+                StringBuilder sb = new StringBuilder("{");
+                String comma = "";
+                for (Map.Entry<?,?> e :  row.getMap(index, keyType, valueType).entrySet()) {
+                    sb.append(comma)
+                      .append(stringOf(e.getKey()))
+                      .append(':')
+                      .append(stringOf(e.getValue()));
+                    comma=",";
+                }
+                sb.append("}");
+                return sb;
+            }
+            throw new RuntimeException("Unknown collection type: " + columnType.getName() );
         }
 
         Class<?> javaType = columnType.asJavaClass();
-
 
         if (javaType == Integer.class)
             return row.getInt(index);
