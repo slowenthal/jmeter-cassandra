@@ -8,6 +8,7 @@ import org.apache.cassandra.jmeter.config.CassandraSessionFactory;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -49,6 +50,10 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
         return tableDefinitions;
     }
 
+    @BeforeClass
+    public void beforeClass() {
+        super.beforeClass();
+    }
 
     @Test
     public void testConnectionNoKSNoLB() {

@@ -2,6 +2,7 @@ package org.apache.cassandra.jmeter;
 
 import com.datastax.driver.core.Session;
 import org.apache.cassandra.jmeter.config.CassandraConnection;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -14,6 +15,14 @@ import static org.testng.Assert.assertTrue;
  * Copyright 2013 DataStax
  */
 public class ConnectionTest extends JMeterTest {
+
+    // TODO - sort out BeforeClass hierarchies
+
+    @BeforeClass
+    public void beforeClass() {
+        super.beforeClass();
+    }
+
     @Test
     public void testConnection() {
         CassandraConnection cc = new CassandraConnection();
