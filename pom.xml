@@ -91,7 +91,6 @@
                 <configuration>
                     <systemPropertyVariables>
                         <cassandra.version>${cassandra.version}</cassandra.version>
-                        <!--<ipprefix>${ipprefix}</ipprefix> TODO - WHAT'S THIS? -->
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
