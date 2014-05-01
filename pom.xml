@@ -37,12 +37,18 @@
             <version>2.10</version>
             <scope>provided</scope>
             <exclusions>
-                <!--&lt;!&ndash;&lt;!&ndash; TODO It conflict for tests as I want to see the log - not sure on permanent fix&ndash;&gt;&ndash;&gt;-->
+                <!--&lt;!&ndash;&lt;!&ndash; TODO It conflicts for tests as I want to see the log - not sure on permanent fix&ndash;&gt;&ndash;&gt;-->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-nop</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.8.8</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -77,6 +83,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <cassandra.version>${cassandra.version}</cassandra.version>
+                        <!--<ipprefix>${ipprefix}</ipprefix> TODO - WHAT'S THIS? -->
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
 
