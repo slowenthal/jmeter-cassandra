@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="2.6" jmeter="2.11 r1554548">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+    </TestPlan>
+    <hashTree>
+      <org.apache.cassandra.jmeter.config.CassandraConnection guiclass="TestBeanGUI" testclass="org.apache.cassandra.jmeter.config.CassandraConnection" testname="CassandraConnection" enabled="true">
+        <stringProp name="sessionName">ccm</stringProp>
+        <stringProp name="contactPoints">127.0.1.1</stringProp>
+        <stringProp name="keyspace"></stringProp>
+        <stringProp name="username"></stringProp>
+        <stringProp name="password"></stringProp>
+      </org.apache.cassandra.jmeter.config.CassandraConnection>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <longProp name="ThreadGroup.start_time">1395538466000</longProp>
+        <longProp name="ThreadGroup.end_time">1395538466000</longProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <org.apache.cassandra.jmeter.sampler.CassandraSampler guiclass="TestBeanGUI" testclass="org.apache.cassandra.jmeter.sampler.CassandraSampler" testname="CreateKs" enabled="true">
+          <stringProp name="sessionName">ccm</stringProp>
+          <stringProp name="queryType">Simple Statement</stringProp>
+          <stringProp name="query">create keyspace ks1 with replication = {&apos;class&apos;:&apos;SimpleStrategy&apos;,&apos;replication_factor&apos;:1}</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="consistencyLevel">ONE</stringProp>
+          <stringProp name="batchSize"></stringProp>
+        </org.apache.cassandra.jmeter.sampler.CassandraSampler>
+        <hashTree/>
+        <org.apache.cassandra.jmeter.sampler.CassandraSampler guiclass="TestBeanGUI" testclass="org.apache.cassandra.jmeter.sampler.CassandraSampler" testname="CreateTable" enabled="true">
+          <stringProp name="sessionName">ccm</stringProp>
+          <stringProp name="queryType">Simple Statement</stringProp>
+          <stringProp name="query">create table ks1.t1 (c1 int primary key, c2 text, c3 timestamp)</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="consistencyLevel">ONE</stringProp>
+          <stringProp name="batchSize"></stringProp>
+        </org.apache.cassandra.jmeter.sampler.CassandraSampler>
+        <hashTree/>
+        <org.apache.cassandra.jmeter.sampler.CassandraSampler guiclass="TestBeanGUI" testclass="org.apache.cassandra.jmeter.sampler.CassandraSampler" testname="InsertTable" enabled="true">
+          <stringProp name="sessionName">ccm</stringProp>
+          <stringProp name="queryType">Simple Statement</stringProp>
+          <stringProp name="query">insert into ks1.t1 (c1,c2,c3) values (1,&apos;One&apos;, &apos;2014-03-14&apos;);</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="consistencyLevel">ONE</stringProp>
+          <stringProp name="batchSize"></stringProp>
+        </org.apache.cassandra.jmeter.sampler.CassandraSampler>
+        <hashTree/>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>false</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
