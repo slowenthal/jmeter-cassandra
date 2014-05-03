@@ -25,4 +25,4 @@ Fields:
 - Password (Future):
 
 
-![alt text](https://github.com/slowenthal/jmeter-cassandra/blob/master/wiki/images/configScreenShot.png)
+![alt text](https://raw.githubusercontent.com/slowenthal/jmeter-cassandra/master/wiki/images/configScreenShot.png)
