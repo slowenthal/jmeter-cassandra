@@ -53,7 +53,7 @@ public class CassandraConnection extends AbstractTestElement
 
     @Override
     public void testEnded() {
-        CassandraSessionFactory.closeSession(getSession(sessionName));
+          CassandraSessionFactory.destroyClusters();
     }
 
     @Override
@@ -78,7 +78,6 @@ public class CassandraConnection extends AbstractTestElement
         testStarted();
     }
 
-      // TODO - Fix this
     @Override
     public Object clone() {
         return (CassandraConnection) super.clone();
@@ -113,7 +112,6 @@ public class CassandraConnection extends AbstractTestElement
     public boolean expectsModification() {
         return false;
     }
-
 
     /**
      * @return Returns the poolname.

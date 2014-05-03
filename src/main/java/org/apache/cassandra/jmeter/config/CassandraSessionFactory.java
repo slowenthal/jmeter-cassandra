@@ -73,6 +73,12 @@ public class CassandraSessionFactory {
     return session;
   }
 
+  public static synchronized void destroyClusters() {
+      for (Cluster cluster : instance.clusters.values()) {
+          cluster.close();
+      }
+  }
+
   public static synchronized void closeSession(Session session) {
 
       // Find the session
