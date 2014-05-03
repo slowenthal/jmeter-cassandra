@@ -34,10 +34,14 @@ Simple add a Cassandra Sampler to your test plan.  The sampler runs in 3 modes, 
 Set up the following fields:
 
 - Session Variable - the variable name created in the Cassandra Connection
-- Query Type - Simple Statement, Prepared Statement, Batch Statement.  The Batch Statement is a dynamic batch, and is not related to the BEGIN BATCH statment.
-- CQL Query - A single CQL query.  You may use DML, DDL, BEGIN BATCH, SELECT, etc.  If the query types is Prepared or Batch, you may use parameter markers in the query.
+- Query Type - Simple Statement, Prepared Statement, Dynamic Batch.  The Batch Statement is a dynamic batch, and is not related to the BEGIN BATCH statment.
+- CQL Query - A single CQL query.  You may use DML, DDL, BEGIN BATCH, SELECT, etc.  If the query types is Prepared or Dynamic Batch, you may use parameter markers in the query.
 - Parameter Values (Optional):  The parameter values used in Prepared and Batch statements. See the JDBC Sampler for more information.
 - Variable Names (Optional):  Variables created for output values.  The names specified are postpended with the row number.  For example, if you have a variable call LAST_NAME, and the result set outputs 3 rows, the sampler outputs 3 variables - LASTNAME_1, LASTNAME_2, LASTNAME_3.
+- Result Variable Name (Optional):  A single variable that contains the entire result set.  (See the JDBC Sampler).
+- Consistency Level - The consistency level to use for executing this statement
+- Batch Size (Optional): If the Query Type is a Batch Statement, the number of statements to get queued up in the batch before the batch is applied.
+
 
 
 
