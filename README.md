@@ -23,3 +23,6 @@ Fields:
 - Default Keyspace (Optional):  The default keyspace used by CQL
 - Username (Future):
 - Password (Future):
+
+
+![alt text](https://github.com/slowenthal/jmeter-cassandra/blob/master/wiki/images/configScreenShot.png)
