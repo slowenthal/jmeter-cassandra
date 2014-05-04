@@ -11,7 +11,7 @@ A CQL3 native plugin for Cassandra 2.0 using the DataStax Java Driver for Apache
 
 ## Installation
 
-Simply drop the JMeterCassandra.jar into the JMeter's lib dirctory, and its dependent libraries in the the lib/ext directory.
+Simply drop the jmeter-cassandra-0.8-alpha.jar into the JMeter's lib/ext dirctory, and its dependent libraries in the the lib/ext directory as well. The dependent libraries are in the lib directory.
 
 ## Configuration
 
