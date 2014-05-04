@@ -1,6 +1,7 @@
 package org.apache.cassandra.jmeter;
 
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -46,5 +47,25 @@ public class ConnectionTest extends JMeterTest {
         // Are we closed?
         assertTrue(session.isClosed(), "Session is Closed");
 
+    }
+
+    @Test
+    public void testBadConnection() {
+        CassandraConnection cc = new CassandraConnection();
+
+        cc.setProperty("contactPoints", "127.1.1.1");
+//        cc.setProperty("keyspace", "testks");
+        cc.setProperty("sessionName", "testsession");
+
+        Boolean exeptionCaught=false;
+
+        try {
+            cc.testStarted();
+        } catch (NoHostAvailableException e) {
+            exeptionCaught = true;
+        }
+        assertTrue(exeptionCaught, "NoHostAvailable did not occur.");
+
+        cc.testEnded();
     }
 }
