@@ -85,9 +85,14 @@ public class CassandraSessionFactory {
   }
 
   public static synchronized void destroyClusters() {
+      for (Session session : instance.sessions.values()) {
+          session.close();
+      }
+      instance.sessions.clear();
       for (Cluster cluster : instance.clusters.values()) {
           cluster.close();
       }
+      instance.clusters.clear();
   }
 
   public static synchronized void closeSession(Session session) {
