@@ -16,6 +16,9 @@ package org.apache.cassandra.jmeter.config;
  */
 
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.LoadBalancingPolicy;
+import com.datastax.driver.core.policies.RoundRobinPolicy;
 import org.apache.jmeter.config.ConfigElement;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.TestBeanHelper;
@@ -31,11 +34,16 @@ import java.util.*;
 public class CassandraConnection extends AbstractTestElement
     implements ConfigElement, TestStateListener, TestBean
     {
+
+    // Load Balancer constants
+    static final String ROUND_ROBIN = "RoundRobin";
+    static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
+
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     private static final long serialVersionUID = 233L;
 
-    private transient String contactPoints, keyspace, username, password, sessionName;
+    private transient String contactPoints, keyspace, username, password, sessionName, loadBalancer, localDataCenter;
 
     // TODO - Add Port Number
 
@@ -66,8 +74,15 @@ public class CassandraConnection extends AbstractTestElement
         this.setRunningVersion(true);
         TestBeanHelper.prepare(this);
         JMeterVariables variables = getThreadContext().getVariables();
+        LoadBalancingPolicy loadBalancingPolicy = null;
 
-        Session session = CassandraSessionFactory.createSession(contactPoints, keyspace, null);
+        if (loadBalancer.contentEquals(DC_AWARE_ROUND_ROBIN)) {
+            loadBalancingPolicy = new DCAwareRoundRobinPolicy(localDataCenter);
+        } else if (loadBalancer.contentEquals(ROUND_ROBIN)) {
+            loadBalancingPolicy = new RoundRobinPolicy();
+        }
+
+        Session session = CassandraSessionFactory.createSession(contactPoints, keyspace, loadBalancingPolicy);
 
         variables.putObject(sessionName, session);
     }
@@ -180,4 +195,20 @@ public class CassandraConnection extends AbstractTestElement
    public void setSessionName(String sessionName) {
        this.sessionName = sessionName;
    }
-}
+
+   public String getLoadBalancer() {
+       return loadBalancer;
+   }
+
+   public void setLoadBalancer(String loadBalancer) {
+       this.loadBalancer = loadBalancer;
+   }
+
+    public String getLocalDataCenter() {
+        return localDataCenter;
+    }
+
+    public void setLocalDataCenter(String localDataCenter) {
+        this.localDataCenter = localDataCenter;
+    }
+ }
