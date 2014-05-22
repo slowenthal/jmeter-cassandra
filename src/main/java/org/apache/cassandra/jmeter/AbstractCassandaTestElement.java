@@ -76,7 +76,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     static final String QUORUM = "QUORUM";
     static final String ALL = "ALL";
     static final String LOCAL_ONE = "LOCAL_ONE";
-    static final String LOCAL_QUORUM = "LOCAL_QUOURM";
+    static final String LOCAL_QUORUM = "LOCAL_QUORUM";
     static final String EACH_QUORUM = "EACH_QUORUM";
 
     private String sessionName = ""; // $NON-NLS-1$
