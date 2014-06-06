@@ -82,7 +82,7 @@ public class CassandraConnection extends AbstractTestElement
             loadBalancingPolicy = new RoundRobinPolicy();
         }
 
-        Session session = CassandraSessionFactory.createSession(contactPoints, keyspace, loadBalancingPolicy);
+        Session session = CassandraSessionFactory.createSession(sessionName, contactPoints, keyspace, username, password, loadBalancingPolicy);
 
         variables.putObject(sessionName, session);
     }

@@ -58,7 +58,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
     @Test
     public void testConnectionNoKSNoLB() {
 
-        Session session = CassandraSessionFactory.createSession(NODE_1_IP,null,null);
+        Session session = CassandraSessionFactory.createSession("testsession",NODE_1_IP,null,null,null,null);
 
         assertNotNull(session);
 
@@ -77,7 +77,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
     @Test
     public void testSecondConnection() {
 
-        Session session = CassandraSessionFactory.createSession(NODE_1_IP,null,null);
+        Session session = CassandraSessionFactory.createSession("testsession",NODE_1_IP,null,null,null,null);
 
         assertNotNull(session);
 
@@ -86,7 +86,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
 
         assertEquals(clusterName,"test");
 
-        Session session2 = CassandraSessionFactory.createSession(NODE_1_IP,null,null);
+        Session session2 = CassandraSessionFactory.createSession("testsession2", NODE_1_IP,null,null,null,null);
 
         // Did we get back the same session?
         assertEquals(session, session2);

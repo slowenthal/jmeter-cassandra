@@ -52,9 +52,8 @@ public class CassandraSessionFactory {
     return instance;
   }
 
-  public static synchronized Session createSession(String host, String keyspace, LoadBalancingPolicy loadBalancingPolicy) {
+  public static synchronized Session createSession(String sessionKey, String host, String keyspace, String username, String password, LoadBalancingPolicy loadBalancingPolicy) {
 
-    String sessionKey = host + keyspace;
     instance = getInstance();
     Session session = instance.sessions.get(sessionKey);
     if (session == null) {
@@ -67,6 +66,10 @@ public class CassandraSessionFactory {
 
             if (loadBalancingPolicy != null ) {
                 cb = cb.withLoadBalancingPolicy(loadBalancingPolicy);
+            }
+
+            if ( username != null && ! username.isEmpty()) {
+                cb = cb.withCredentials(username, password);
             }
 
             cluster = cb.build();
