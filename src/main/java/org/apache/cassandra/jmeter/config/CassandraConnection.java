@@ -38,6 +38,7 @@ public class CassandraConnection extends AbstractTestElement
     // Load Balancer constants
     static final String ROUND_ROBIN = "RoundRobin";
     static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
+    static final String DEFAULTLOADBALANCER = "Default";
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
@@ -77,8 +78,16 @@ public class CassandraConnection extends AbstractTestElement
         LoadBalancingPolicy loadBalancingPolicy = null;
 
         if (loadBalancer.contentEquals(DC_AWARE_ROUND_ROBIN)) {
-            loadBalancingPolicy = new DCAwareRoundRobinPolicy(localDataCenter);
+            // in driver v2.0.2+, we can use the default constructor on
+            // dcawareroundrobinpolicy
+            if (localDataCenter.isEmpty()) {
+                loadBalancingPolicy = new DCAwareRoundRobinPolicy();
+            }   else {
+                loadBalancingPolicy = new DCAwareRoundRobinPolicy(localDataCenter);
+            }
         } else if (loadBalancer.contentEquals(ROUND_ROBIN)) {
+            loadBalancingPolicy = new RoundRobinPolicy();
+        } else if (loadBalancer.contentEquals(DEFAULTLOADBALANCER)) {
             loadBalancingPolicy = new RoundRobinPolicy();
         }
 

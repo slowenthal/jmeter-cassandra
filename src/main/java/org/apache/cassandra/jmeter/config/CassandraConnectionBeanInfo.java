@@ -52,11 +52,12 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
 
         p = property("loadBalancer"); // $NON-NLS-1$
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        p.setValue(DEFAULT, CassandraConnection.ROUND_ROBIN);
+        p.setValue(DEFAULT, CassandraConnection.DEFAULTLOADBALANCER);
         p.setValue(NOT_OTHER,Boolean.TRUE);
         p.setValue(TAGS,new String[]{
                  CassandraConnection.ROUND_ROBIN,
-                 CassandraConnection.DC_AWARE_ROUND_ROBIN
+                 CassandraConnection.DC_AWARE_ROUND_ROBIN,
+                 CassandraConnection.DEFAULTLOADBALANCER
         });
 
         p = property("localDataCenter");

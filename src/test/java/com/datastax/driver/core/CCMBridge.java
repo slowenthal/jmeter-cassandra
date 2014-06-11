@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
 
@@ -238,7 +239,7 @@ public class CCMBridge {
                 session = cluster.connect();
             } catch (NoHostAvailableException e) {
                 erroredOut = true;
-                for (Map.Entry<InetAddress, Throwable> entry : e.getErrors().entrySet())
+                for (Map.Entry<InetSocketAddress, Throwable> entry : e.getErrors().entrySet())
                     logger.info("Error connecting to " + entry.getKey() + ": " + entry.getValue());
                 throw new RuntimeException(e);
             }
@@ -325,7 +326,7 @@ public class CCMBridge {
                 this.cluster = builder.addContactPoints(IP_PREFIX + '1').build();
                 this.session = cluster.connect();
             } catch (NoHostAvailableException e) {
-                for (Map.Entry<InetAddress, Throwable> entry : e.getErrors().entrySet())
+                for (Map.Entry<InetSocketAddress, Throwable> entry : e.getErrors().entrySet())
                     logger.info("Error connecting to " + entry.getKey() + ": " + entry.getValue());
                 throw new RuntimeException(e);
             }
