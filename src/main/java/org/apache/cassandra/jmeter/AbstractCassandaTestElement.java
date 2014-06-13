@@ -150,6 +150,42 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         return getStringFromResultSet(rs).getBytes(ENCODING);
     }
 
+    private static byte[] hexStringToByteArray(String s) throws ParseException {
+
+        if (! s.startsWith("0x")) {
+            throw new ParseException("blob must start with 0x", 0);
+        }
+        int len = s.length() -2 ;
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((charToHexDigit(s.charAt(i + 2)) << 4)
+                    + charToHexDigit(s.charAt(i + 3)));
+        }
+        return data;
+    }
+
+    private static int charToHexDigit(char ch) throws ParseException {
+        int digit = Character.digit(ch,16);
+        if (digit == -1 ) {
+            throw new ParseException("\"" + ch + "\" is an invalid character", 0);
+        }
+        return digit;
+    }
+
+    final protected static char[] hexArray = "0123456789abcdef".toCharArray();
+    private static String bytesToHex(ByteBuffer bb) {
+        char[] hexChars = new char[bb.remaining() * 2];
+        int j=0;
+        while (bb.hasRemaining() ) {
+            int v = bb.get() & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+            j++;
+        }
+
+        return "0x" + new String(hexChars);
+    }
+
     private void setArguments(BoundStatement pstmt) throws IOException {
         if (getQueryArguments().trim().length()==0) {
             return;
@@ -174,10 +210,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     pstmt.setInt(i, Integer.parseInt(argument));
                 else if (javaType == Boolean.class)
                     pstmt.setBool(i, Boolean.parseBoolean(argument));
-                else if (javaType == ByteBuffer.class)  {
-                    // TODO - figure this out byte buffer
-                    throw new RuntimeException("Not yet implemented - byte buffer");
-                }
+                else if (javaType == ByteBuffer.class)
+                    pstmt.setBytes(i,ByteBuffer.wrap(hexStringToByteArray(argument)));
                 else if (javaType == Date.class)
                     pstmt.setDate(i,CassandraDateFormat.parse(argument));
                 else if (javaType == BigDecimal.class)
@@ -187,8 +221,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 else if (javaType == Float.class)
                     pstmt.setFloat(i, Float.parseFloat(argument));
                 else if (javaType == InetAddress.class)  {
-                    // TODO - inet address
-                    throw new RuntimeException("Not yet implemented - inet address");
+                    int start = argument.startsWith("/") ? 1 : 0;    // strip off leading /
+                    pstmt.setInet(i, InetAddress.getByName(argument.substring(start)));
                 }
                 else if (javaType == Long.class)
                     pstmt.setLong(i, Long.parseLong(argument));
@@ -248,6 +282,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     private String stringOf(Object o) {
        if (o.getClass() == Date.class)
            return CassandraDateFormat.format(o);
+       else if (ByteBuffer.class.isAssignableFrom(o.getClass()))
+           return bytesToHex((ByteBuffer) o);
        else
            return o.toString();
     }
@@ -373,6 +409,11 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             for (int i = 0; i < numColumns; i++) {
 
                 Object o = getObject(crow,i) ;
+
+                if (rs.getColumnDefinitions().getType(i).asJavaClass() == ByteBuffer.class) {
+                    o = bytesToHex((ByteBuffer) o);
+                }
+
                 if(results != null) {
                     if(row == null) {
                         row = new HashMap<String, Object>(numColumns);
@@ -380,11 +421,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     }
                     row.put(rs.getColumnDefinitions().getName(i), o);
                 }
-
-// TODO - Do we need to do something with bytebuffers
-//                if (rs.getColumnDefinitions().getType(i).asJavaClass() == byte[].class) {
-//                    o = new String((byte[]) row.ge, ENCODING);
-//                }
 
                 sb.append(o);
                 if (i==numColumns -1){

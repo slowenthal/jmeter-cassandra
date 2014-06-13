@@ -87,17 +87,15 @@ public class SimpleQueryTest extends JMeterTest {
             fail("can't make inet address");
         }
 
-        ByteBuffer bb = ByteBuffer.allocate(58);
-        bb.putShort((short) 0xCAFE);
-        bb.flip();
-
+        byte[] rawbytes={(byte)0xca,(byte)0xfe};
+        ByteBuffer bb = ByteBuffer.wrap(rawbytes);
 
         return new Object[][] {
                 // table name, string version, native version
 
                 { "ascii", "ascii", "ascii" },
                 { "bigint", "9223372036854775807", Long.MAX_VALUE },
-                { "blob", "ascii", bb },
+                { "blob", "0xcafe", bb },
                 { "boolean",  "true", Boolean.TRUE },
                 { "decimal", "1.23E+8", new BigDecimal("12.3E+7") },
                 { "double", "1.7976931348623157E308",  Double.MAX_VALUE},

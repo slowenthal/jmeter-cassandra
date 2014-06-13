@@ -86,7 +86,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
 
         assertEquals(clusterName,"test");
 
-        Session session2 = CassandraSessionFactory.createSession("testsession2", NODE_1_IP,null,null,null,null);
+        Session session2 = CassandraSessionFactory.createSession("testsession", NODE_1_IP,null,null,null,null);
 
         // Did we get back the same session?
         assertEquals(session, session2);
