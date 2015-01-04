@@ -23,8 +23,10 @@ import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class CassandraSessionFactory {
 
@@ -37,7 +39,7 @@ public class CassandraSessionFactory {
   // TODO - When do we shut down a session or cluster??
 
   static CassandraSessionFactory instance;
-  final Map<String, Cluster> clusters = new HashMap<String, Cluster>();
+  final Map<Set<InetAddress>, Cluster> clusters = new HashMap<Set<InetAddress>, Cluster>();
   final Map<String, Session> sessions = new HashMap<String, Session>();
 
   private void CassandraSessionFactory() {
@@ -52,7 +54,7 @@ public class CassandraSessionFactory {
     return instance;
   }
 
-  public static synchronized Session createSession(String sessionKey, String host, String keyspace, String username, String password, LoadBalancingPolicy loadBalancingPolicy) {
+  public static synchronized Session createSession(String sessionKey, Set<InetAddress> host, String keyspace, String username, String password, LoadBalancingPolicy loadBalancingPolicy) {
 
     instance = getInstance();
     Session session = instance.sessions.get(sessionKey);

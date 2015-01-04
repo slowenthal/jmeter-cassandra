@@ -3,6 +3,7 @@ package org.apache.cassandra.jmeter;
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Session;
+import com.google.common.collect.Sets;
 import org.apache.cassandra.jmeter.config.CassandraConnection;
 import org.apache.cassandra.jmeter.config.CassandraSessionFactory;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -12,6 +13,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -56,9 +59,10 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
     }
 
     @Test
-    public void testConnectionNoKSNoLB() {
+    public void testConnectionNoKSNoLB() throws UnknownHostException {
 
-        Session session = CassandraSessionFactory.createSession("testsession",NODE_1_IP,null,null,null,null);
+        Session session = CassandraSessionFactory.createSession("testsession",
+                Sets.newHashSet(InetAddress.getByName(NODE_1_IP)),null,null,null,null);
 
         assertNotNull(session);
 
@@ -75,9 +79,9 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
     }
 
     @Test
-    public void testSecondConnection() {
+    public void testSecondConnection() throws UnknownHostException {
 
-        Session session = CassandraSessionFactory.createSession("testsession",NODE_1_IP,null,null,null,null);
+        Session session = CassandraSessionFactory.createSession("testsession",Sets.newHashSet(InetAddress.getByName(NODE_1_IP)),null,null,null,null);
 
         assertNotNull(session);
 
@@ -86,7 +90,7 @@ public class SessionFactoryTest extends CCMBridge.PerClassSingleNodeCluster {
 
         assertEquals(clusterName,"test");
 
-        Session session2 = CassandraSessionFactory.createSession("testsession", NODE_1_IP,null,null,null,null);
+        Session session2 = CassandraSessionFactory.createSession("testsession", Sets.newHashSet(InetAddress.getByName(NODE_1_IP)),null,null,null,null);
 
         // Did we get back the same session?
         assertEquals(session, session2);

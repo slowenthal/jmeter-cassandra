@@ -145,6 +145,9 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             throw new UnsupportedOperationException("Unexpected query type: " + _queryType);
         }
         batchStatmentCount = 0;
+        // TODO - clean up setConsistencyLevel everywhere
+        // TODO - This is the one that will always work
+        stmt.setConsistencyLevel(getConsistencyLevelCL());
         rs = conn.execute(stmt);
         batchStatement.clear();   // You've got to be kidding!
         return getStringFromResultSet(rs).getBytes(ENCODING);

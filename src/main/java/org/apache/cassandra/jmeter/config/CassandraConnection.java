@@ -19,6 +19,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.datastax.driver.core.policies.RoundRobinPolicy;
+import com.datastax.driver.core.policies.WhiteListPolicy;
 import org.apache.jmeter.config.ConfigElement;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.TestBeanHelper;
@@ -29,6 +30,9 @@ import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class CassandraConnection extends AbstractTestElement
@@ -38,6 +42,7 @@ public class CassandraConnection extends AbstractTestElement
     // Load Balancer constants
     static final String ROUND_ROBIN = "RoundRobin";
     static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
+    static final String WHITELIST = "WhiteListRoundRobin";
     static final String DEFAULTLOADBALANCER = "Default";
 
     private static final Logger log = LoggingManager.getLoggerForClass();
@@ -45,6 +50,9 @@ public class CassandraConnection extends AbstractTestElement
     private static final long serialVersionUID = 233L;
 
     private transient String contactPoints, keyspace, username, password, sessionName, loadBalancer, localDataCenter;
+
+    private final transient Set<InetAddress> contactPointsI = new HashSet<InetAddress>();
+    private final transient Set<InetSocketAddress> contactPointsIS = new HashSet<InetSocketAddress>();
 
     // TODO - Add Port Number
 
@@ -85,13 +93,15 @@ public class CassandraConnection extends AbstractTestElement
             }   else {
                 loadBalancingPolicy = new DCAwareRoundRobinPolicy(localDataCenter);
             }
+        } else if (loadBalancer.contentEquals(WHITELIST)) {
+            loadBalancingPolicy = new WhiteListPolicy(new RoundRobinPolicy(), contactPointsIS);
         } else if (loadBalancer.contentEquals(ROUND_ROBIN)) {
             loadBalancingPolicy = new RoundRobinPolicy();
         } else if (loadBalancer.contentEquals(DEFAULTLOADBALANCER)) {
-            loadBalancingPolicy = new RoundRobinPolicy();
+            loadBalancingPolicy = null;
         }
 
-        Session session = CassandraSessionFactory.createSession(sessionName, contactPoints, keyspace, username, password, loadBalancingPolicy);
+        Session session = CassandraSessionFactory.createSession(sessionName, contactPointsI, keyspace, username, password, loadBalancingPolicy);
 
         variables.putObject(sessionName, session);
     }
@@ -140,15 +150,20 @@ public class CassandraConnection extends AbstractTestElement
      * @return Returns the poolname.
      */
     public String getContactPoints() {
-        return contactPoints;
+        return contactPoints.toString();
     }
 
     /**
      * @param contactPoints
      *            The poolname to set.
      */
-    public void setContactPoints(String contactPoints) {
+    public void setContactPoints(String contactPoints) throws UnknownHostException {
         this.contactPoints = contactPoints;
+        for (String contactPt : contactPoints.split(",")) {
+            this.contactPointsI.add(InetAddress.getByName(contactPt));
+            // TODO - 9160 should not really be hard coded.
+            this.contactPointsIS.add(InetSocketAddress.createUnresolved(contactPt, 9160));
+        }
     }
 
     /**
