@@ -23,6 +23,7 @@
         <format>tar.bz2</format>
         <format>zip</format>
     </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
             <directory>${project.basedir}</directory>
@@ -33,24 +34,12 @@
                 <include>NOTICE*</include>
             </includes>
         </fileSet>
-        <fileSet>
-            <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>${project.build.directory}/site</directory>
-            <outputDirectory>docs</outputDirectory>
-        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>/lib/ext</outputDirectory>
             <unpack>false</unpack>
             <scope>runtime</scope>
         </dependencySet>
     </dependencySets>
-
 </assembly>

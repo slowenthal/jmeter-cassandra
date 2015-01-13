@@ -11,7 +11,7 @@ A CQL3 native plugin for Cassandra 2.0 using the DataStax Java Driver for Apache
 
 ## Installation
 
-Simply drop the jmeter-cassandra-0.8-alpha.jar into the JMeter's lib/ext dirctory, and its dependent libraries in the the lib/ext directory as well. The dependent libraries are in the lib directory.
+Simply unpack the archive in the JMeter install directory. All of the libraries will unpack into the lib/ext directory.
 
 ## Configuration
 
@@ -21,8 +21,8 @@ Fields:
 - Variable Name (Required): Similar to JDBC.  A name by which the Samplers/Processors will refer to this connection
 - Contact Points (Required):  A comma-separated list of contact points in your cluster
 - Default Keyspace (Optional):  The default keyspace used by CQL
-- Username (Future):
-- Password (Future):
+- Username: Username for use with the PasswordAuthenticator
+- Password: Password for use with the PasswordAuthenticator
 
 
 ![alt text](https://raw.githubusercontent.com/slowenthal/jmeter-cassandra/master/wiki/images/configScreenShot.png)
@@ -44,9 +44,10 @@ Set up the following fields:
 
 
 
+# Build a distribution package:
 
 
-
+mvn clean package assembly:single -DskipTests=true
 
 
 
