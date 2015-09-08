@@ -57,6 +57,7 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
         p.setValue(TAGS,new String[]{
                  CassandraConnection.ROUND_ROBIN,
                  CassandraConnection.DC_AWARE_ROUND_ROBIN,
+                 CassandraConnection.DC_TOKEN_AWARE,
                  CassandraConnection.DEFAULTLOADBALANCER
         });
 

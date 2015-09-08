@@ -39,7 +39,6 @@ public class CassandraSessionFactory {
   // TODO - When do we shut down a session or cluster??
 
   static CassandraSessionFactory instance;
-  final Map<Set<InetAddress>, Cluster> clusters = new HashMap<Set<InetAddress>, Cluster>();
   final Map<String, Session> sessions = new HashMap<String, Session>();
 
   private void CassandraSessionFactory() {
@@ -58,28 +57,24 @@ public class CassandraSessionFactory {
 
     instance = getInstance();
     Session session = instance.sessions.get(sessionKey);
-    if (session == null) {
-        Cluster cluster = instance.clusters.get(host);
+      if (session == null) {
 
-        if (cluster == null) {
-           Cluster.Builder cb = Cluster.builder()
-                    .addContactPoints(host)
-                    .withReconnectionPolicy(new ConstantReconnectionPolicy(10000)) ;
+          Cluster.Builder cb = Cluster.builder()
+                  .addContactPoints(host)
+                  .withReconnectionPolicy(new ConstantReconnectionPolicy(10000)) ;
 
-            if (loadBalancingPolicy != null ) {
-                cb = cb.withLoadBalancingPolicy(loadBalancingPolicy);
-            }
+          if (loadBalancingPolicy != null ) {
+              cb = cb.withLoadBalancingPolicy(loadBalancingPolicy);
+          }
 
-            if ( username != null && ! username.isEmpty()) {
-                cb = cb.withCredentials(username, password);
-            }
+          if ( username != null && ! username.isEmpty()) {
+              cb = cb.withCredentials(username, password);
+          }
 
-            cluster = cb.build();
+          Cluster cluster = cb.build();
 
-            instance.clusters.put(host, cluster);
-        }
 
-      if (keyspace != null && !keyspace.isEmpty())
+          if (keyspace != null && !keyspace.isEmpty())
         session = cluster.connect(keyspace);
       else
         session = cluster.connect();
@@ -91,13 +86,11 @@ public class CassandraSessionFactory {
 
   public static synchronized void destroyClusters() {
       for (Session session : instance.sessions.values()) {
+          Cluster cluster = session.getCluster();
           session.close();
-      }
-      instance.sessions.clear();
-      for (Cluster cluster : instance.clusters.values()) {
           cluster.close();
       }
-      instance.clusters.clear();
+      instance.sessions.clear();
   }
 
   public static synchronized void closeSession(Session session) {

@@ -600,7 +600,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * {@inheritDoc}
      * @see org.apache.jmeter.testelement.TestStateListener#testStarted()
      */
-    @Override
     public void testStarted() {
         testStarted("");
     }
@@ -609,7 +608,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * {@inheritDoc}
      * @see org.apache.jmeter.testelement.TestStateListener#testStarted(String)
      */
-    @Override
     public void testStarted(String host) {
         cleanCache();
     }
@@ -618,7 +616,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * {@inheritDoc}
      * @see org.apache.jmeter.testelement.TestStateListener#testEnded()
      */
-    @Override
     public void testEnded() {
         testEnded("");
     }
@@ -627,7 +624,6 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
      * {@inheritDoc}
      * @see org.apache.jmeter.testelement.TestStateListener#testEnded(String)
      */
-    @Override
     public void testEnded(String host) {
         cleanCache();
     }

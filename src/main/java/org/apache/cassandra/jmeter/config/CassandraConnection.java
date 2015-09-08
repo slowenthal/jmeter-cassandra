@@ -16,10 +16,7 @@ package org.apache.cassandra.jmeter.config;
  */
 
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.LoadBalancingPolicy;
-import com.datastax.driver.core.policies.RoundRobinPolicy;
-import com.datastax.driver.core.policies.WhiteListPolicy;
+import com.datastax.driver.core.policies.*;
 import org.apache.jmeter.config.ConfigElement;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.TestBeanHelper;
@@ -40,10 +37,11 @@ public class CassandraConnection extends AbstractTestElement
     {
 
     // Load Balancer constants
-    static final String ROUND_ROBIN = "RoundRobin";
-    static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
-    static final String WHITELIST = "WhiteListRoundRobin";
-    static final String DEFAULTLOADBALANCER = "Default";
+    public static final String ROUND_ROBIN = "RoundRobin";
+    public static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
+    public static final String DC_TOKEN_AWARE = "TokenAware(DCAwareRoundRobin)";
+    public static final String WHITELIST = "WhiteListRoundRobin";
+    public static final String DEFAULTLOADBALANCER = "Default";
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
@@ -67,17 +65,14 @@ public class CassandraConnection extends AbstractTestElement
     public CassandraConnection() {
     }
 
-    @Override
     public void testEnded() {
           CassandraSessionFactory.destroyClusters();
     }
 
-    @Override
     public void testEnded(String host) {
         testEnded();
     }
 
-    @Override
     @SuppressWarnings("deprecation") // call to TestBeanHelper.prepare() is intentional
     public void testStarted() {
         this.setRunningVersion(true);
@@ -97,6 +92,8 @@ public class CassandraConnection extends AbstractTestElement
             loadBalancingPolicy = new WhiteListPolicy(new RoundRobinPolicy(), contactPointsIS);
         } else if (loadBalancer.contentEquals(ROUND_ROBIN)) {
             loadBalancingPolicy = new RoundRobinPolicy();
+        } else if (loadBalancer.contentEquals(DC_TOKEN_AWARE)) {
+            loadBalancingPolicy = new TokenAwarePolicy(new DCAwareRoundRobinPolicy());
         } else if (loadBalancer.contentEquals(DEFAULTLOADBALANCER)) {
             loadBalancingPolicy = null;
         }
@@ -106,7 +103,6 @@ public class CassandraConnection extends AbstractTestElement
         variables.putObject(sessionName, session);
     }
 
-    @Override
     public void testStarted(String host) {
         testStarted();
     }
@@ -137,11 +133,9 @@ public class CassandraConnection extends AbstractTestElement
 
 
 
-    @Override
     public void addConfigElement(ConfigElement config) {
     }
 
-    @Override
     public boolean expectsModification() {
         return false;
     }
@@ -162,7 +156,7 @@ public class CassandraConnection extends AbstractTestElement
         for (String contactPt : contactPoints.split(",")) {
             this.contactPointsI.add(InetAddress.getByName(contactPt));
             // TODO - 9160 should not really be hard coded.
-            this.contactPointsIS.add(InetSocketAddress.createUnresolved(contactPt, 9160));
+            this.contactPointsIS.add(new InetSocketAddress(contactPt, 9042));
         }
     }
 

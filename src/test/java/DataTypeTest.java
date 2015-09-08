@@ -487,7 +487,7 @@ public class DataTypeTest extends CCMBridge.PerClassSingleNodeCluster {
                 continue;
 
             Object value = TestUtils.getFixedValue(dt);
-            assertEquals(dt.deserialize(dt.serialize(value)), value);
+            assertEquals(dt.deserialize(dt.serialize(value, ProtocolVersion.V3)), value);
         }
 
         try {
@@ -508,10 +508,10 @@ public class DataTypeTest extends CCMBridge.PerClassSingleNodeCluster {
         List<String> l = Arrays.asList("foo", "bar");
 
         DataType dt = DataType.list(DataType.text());
-        assertEquals(dt.deserialize(dt.serialize(l)), l);
+        assertEquals(dt.deserialize(dt.serialize(l, ProtocolVersion.V3)), l);
 
         try {
-            DataType.list(DataType.bigint()).serialize(l);
+            DataType.list(DataType.bigint()).serialize(l, ProtocolVersion.V3);
             fail("This should not have worked");
         } catch (InvalidTypeException e) { /* That's what we want */ }
     }
