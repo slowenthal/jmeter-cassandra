@@ -100,7 +100,7 @@ public class TupleTest extends JMeterTest {
         cs.setProperty("resultVariable","rv");
         cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
         cs.setProperty("queryArguments", "\"" + EXPECTED + "\"");
-        cs.setProperty("query", "INSERT INTO tup (key,tup) VALUES (2, ?)");
+        cs.setProperty("query", "INSERT INTO " + TABLE + " (key,tup) VALUES (2, ?)");
 
         TestBeanHelper.prepare(cs);
 

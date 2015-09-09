@@ -239,6 +239,10 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     DataType tp = colDefs.getType(i);
                     TupleValue tup = (TupleValue) tp.parse(argument);
                     pstmt.setTupleValue(i, tup);
+                } else if (javaType == UDTValue.class) {
+                    DataType tp = colDefs.getType(i);
+                    UDTValue udt = (UDTValue) tp.parse(argument);
+                    pstmt.setUDTValue(i,udt);
                 }
                 else
                     throw new RuntimeException("Unsupported Type: " + javaType);
@@ -373,6 +377,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             return row.getVarint(index);
         if (javaType == TupleValue.class)
             return row.getTupleValue(index);
+        if (javaType == UDTValue.class)
+            return row.getUDTValue(index);
 
 
         throw new RuntimeException("Type "+ javaType + " is not supported");
