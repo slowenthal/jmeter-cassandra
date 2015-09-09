@@ -58,6 +58,7 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
                  CassandraConnection.ROUND_ROBIN,
                  CassandraConnection.DC_AWARE_ROUND_ROBIN,
                  CassandraConnection.DC_TOKEN_AWARE,
+                 CassandraConnection.WHITELIST,
                  CassandraConnection.DEFAULTLOADBALANCER
         });
 

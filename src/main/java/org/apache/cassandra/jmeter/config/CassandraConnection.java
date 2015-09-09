@@ -40,7 +40,7 @@ public class CassandraConnection extends AbstractTestElement
     public static final String ROUND_ROBIN = "RoundRobin";
     public static final String DC_AWARE_ROUND_ROBIN = "DCAwareRoundRobin";
     public static final String DC_TOKEN_AWARE = "TokenAware(DCAwareRoundRobin)";
-    public static final String WHITELIST = "WhiteListRoundRobin";
+    public static final String WHITELIST = "WhiteList";
     public static final String DEFAULTLOADBALANCER = "Default";
 
     private static final Logger log = LoggingManager.getLoggerForClass();
