@@ -206,8 +206,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         for (int i = 0; i < arguments.length; i++) {
             String argument = arguments[i];
 
-
-            Class<?> javaType = colDefs.getType(i).asJavaClass();
+            DataType tp = colDefs.getType(i);
+            Class<?> javaType = tp.asJavaClass();
             try {
                 if (javaType == Integer.class)
                     pstmt.setInt(i, Integer.parseInt(argument));
@@ -236,13 +236,14 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 else if (javaType == BigInteger.class)
                     pstmt.setVarint(i, new BigInteger(argument));
                 else if (javaType == TupleValue.class) {
-                    DataType tp = colDefs.getType(i);
                     TupleValue tup = (TupleValue) tp.parse(argument);
                     pstmt.setTupleValue(i, tup);
                 } else if (javaType == UDTValue.class) {
-                    DataType tp = colDefs.getType(i);
                     UDTValue udt = (UDTValue) tp.parse(argument);
                     pstmt.setUDTValue(i,udt);
+                } else if (javaType.isAssignableFrom(Set.class)) {
+                    Set<?> theSet = (Set<?>) tp.parse(argument);
+                    pstmt.setSet(i,theSet);
                 }
                 else
                     throw new RuntimeException("Unsupported Type: " + javaType);
