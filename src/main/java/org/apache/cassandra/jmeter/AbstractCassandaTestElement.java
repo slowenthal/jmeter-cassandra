@@ -244,6 +244,12 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 } else if (javaType.isAssignableFrom(Set.class)) {
                     Set<?> theSet = (Set<?>) tp.parse(argument);
                     pstmt.setSet(i,theSet);
+                } else if (javaType.isAssignableFrom(List.class)) {
+                    List<?> theList = (List<?>) tp.parse(argument);
+                    pstmt.setList(i,theList);
+                } else if (javaType.isAssignableFrom(Map.class)) {
+                    Map<?,?> theMap = (Map<?,?>) tp.parse(argument);
+                    pstmt.setMap(i,theMap);
                 }
                 else
                     throw new RuntimeException("Unsupported Type: " + javaType);
