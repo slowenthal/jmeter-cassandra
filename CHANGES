@@ -1,0 +1,9 @@
+
+0.9.2
+-----
+
+Add support for sets, maps, and lists as parameters to queries.  Use double quotes to escape them if they contain commas
+Add support for tuples and UTDs
+Make the TokenAware Strategy explicit
+Add a WhiteList policy
+Add tests for maps,lists,sets,UDTs,tuples, and the load balancers
