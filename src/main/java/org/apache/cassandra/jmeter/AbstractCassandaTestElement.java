@@ -235,6 +235,11 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     pstmt.setUUID(i, UUID.fromString(argument));
                 else if (javaType == BigInteger.class)
                     pstmt.setVarint(i, new BigInteger(argument));
+                else if (javaType == TupleValue.class) {
+                    DataType tp = colDefs.getType(i);
+                    TupleValue tup = (TupleValue) tp.parse(argument);
+                    pstmt.setTupleValue(i, tup);
+                }
                 else
                     throw new RuntimeException("Unsupported Type: " + javaType);
 

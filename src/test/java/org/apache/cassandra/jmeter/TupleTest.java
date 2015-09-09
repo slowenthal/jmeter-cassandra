@@ -78,7 +78,6 @@ public class TupleTest extends JMeterTest {
         cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
         cs.setProperty("resultVariable","rv");
         cs.setProperty("queryType", AbstractCassandaTestElement.SIMPLE);
-        cs.setProperty("queryArguments", EXPECTED );
         cs.setProperty("query", "SELECT * FROM " + TABLE + " WHERE key = 1");
 
         TestBeanHelper.prepare(cs);
@@ -90,5 +89,26 @@ public class TupleTest extends JMeterTest {
         logger.info(rowdata);
         assertEquals(rowdata, "key\ttup\n" + "1" + "\t" + EXPECTED + "\n");
 
+    }
+
+    @Test
+    public void testInsertPreparedTuple() {
+        CassandraSampler cs = new CassandraSampler();
+
+        cs.setProperty("sessionName",TESTSESSION);
+        cs.setProperty("consistencyLevel", AbstractCassandaTestElement.ONE);
+        cs.setProperty("resultVariable","rv");
+        cs.setProperty("queryType", AbstractCassandaTestElement.PREPARED);
+        cs.setProperty("queryArguments", "\"" + EXPECTED + "\"");
+        cs.setProperty("query", "INSERT INTO tup (key,tup) VALUES (2, ?)");
+
+        TestBeanHelper.prepare(cs);
+
+        SampleResult res = cs.sample(new Entry());
+        assertTrue(res.isSuccessful(), res.getResponseMessage());
+
+        // See if the value matches
+        String val = session.execute("select tup from " + KEYSPACE + "." + TABLE + " where key = 2").one().getTupleValue(0).toString();
+        assertEquals(EXPECTED, val);
     }
 }
