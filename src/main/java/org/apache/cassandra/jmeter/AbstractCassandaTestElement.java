@@ -366,6 +366,8 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
             return row.getUUID(index);
         if (javaType == BigInteger.class)
             return row.getVarint(index);
+        if (javaType == TupleValue.class)
+            return row.getTupleValue(index);
 
 
         throw new RuntimeException("Type "+ javaType + " is not supported");
