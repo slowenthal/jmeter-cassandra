@@ -17,7 +17,6 @@ package org.apache.cassandra.jmeter;
 
 import com.datastax.driver.core.*;
 import org.apache.commons.collections.map.LRUMap;
-import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.CSVSaveService;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.TestStateListener;
@@ -66,8 +65,12 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
     static final String PREPARED = "Prepared Statement"; // $NON-NLS-1$
     static final String DYNAMIC_BATCH = "Dynamic Batch"; // $NON-NLS-1$
 
-    public static final String CASSANDRA_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ssZ";
-    public final SimpleDateFormat CassandraDateFormat = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING);
+    public static final String CASSANDRA_DATE_FORMAT_STRING1 = "yyyy-MM-dd HH:mm:ssZ";
+    public static final String CASSANDRA_DATE_FORMAT_STRING2 = "yyyy-MM-dd HH:mm:ss";
+    public static final String CASSANDRA_DATE_FORMAT_STRING3 = "yyyy-MM-dd";
+    public final SimpleDateFormat CassandraDateFormat1 = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING1);
+    public final SimpleDateFormat CassandraDateFormat2 = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING2);
+    public final SimpleDateFormat CassandraDateFormat3 = new SimpleDateFormat(CASSANDRA_DATE_FORMAT_STRING3);
 
     static final String ANY = "ANY";
     static final String ONE = "ONE";
@@ -214,18 +217,25 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 else if (javaType == Boolean.class)
                     pstmt.setBool(i, Boolean.parseBoolean(argument));
                 else if (javaType == ByteBuffer.class)
-                    pstmt.setBytes(i,ByteBuffer.wrap(hexStringToByteArray(argument)));
-                else if (javaType == Date.class)
-                    pstmt.setDate(i,CassandraDateFormat.parse(argument));
+                    pstmt.setBytes(i, ByteBuffer.wrap(hexStringToByteArray(argument)));
+                else if (javaType == Date.class) {
+                    if (argument.length() == CASSANDRA_DATE_FORMAT_STRING1.length())
+                        pstmt.setDate(i, CassandraDateFormat1.parse(argument));
+                    else if (argument.length() == CASSANDRA_DATE_FORMAT_STRING2.length())
+                        pstmt.setDate(i, CassandraDateFormat2.parse(argument));
+                    else if (argument.length() == CASSANDRA_DATE_FORMAT_STRING3.length())
+                        pstmt.setDate(i, CassandraDateFormat3.parse(argument));
+                    }
+
                 else if (javaType == BigDecimal.class)
-                    pstmt.setDecimal(i, new BigDecimal(argument));
+                        pstmt.setDecimal(i, new BigDecimal(argument));
                 else if (javaType == Double.class)
-                    pstmt.setDouble(i, Double.parseDouble(argument));
+                        pstmt.setDouble(i, Double.parseDouble(argument));
                 else if (javaType == Float.class)
                     pstmt.setFloat(i, Float.parseFloat(argument));
                 else if (javaType == InetAddress.class)  {
                     int start = argument.startsWith("/") ? 1 : 0;    // strip off leading /
-                    pstmt.setInet(i, InetAddress.getByName(argument.substring(start)));
+                        pstmt.setInet(i, InetAddress.getByName(argument.substring(start)));
                 }
                 else if (javaType == Long.class)
                     pstmt.setLong(i, Long.parseLong(argument));
@@ -235,13 +245,13 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                     pstmt.setUUID(i, UUID.fromString(argument));
                 else if (javaType == BigInteger.class)
                     pstmt.setVarint(i, new BigInteger(argument));
-                else if (javaType == TupleValue.class) {
+                    else if (javaType == TupleValue.class) {
                     TupleValue tup = (TupleValue) tp.parse(argument);
                     pstmt.setTupleValue(i, tup);
                 } else if (javaType == UDTValue.class) {
                     UDTValue udt = (UDTValue) tp.parse(argument);
-                    pstmt.setUDTValue(i,udt);
-                } else if (javaType.isAssignableFrom(Set.class)) {
+                    pstmt.setUDTValue(i, udt);
+                    } else if (javaType.isAssignableFrom(Set.class)) {
                     Set<?> theSet = (Set<?>) tp.parse(argument);
                     pstmt.setSet(i,theSet);
                 } else if (javaType.isAssignableFrom(List.class)) {
@@ -300,7 +310,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
 
     private String stringOf(Object o) {
        if (o.getClass() == Date.class)
-           return CassandraDateFormat.format(o);
+           return CassandraDateFormat1.format(o);
        else if (ByteBuffer.class.isAssignableFrom(o.getClass()))
            return bytesToHex((ByteBuffer) o);
        else
@@ -365,7 +375,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
         if (javaType == ByteBuffer.class)
             return row.getBytes(index);
         if (javaType == Date.class)
-            return CassandraDateFormat.format(row.getDate(index));
+            return CassandraDateFormat1.format(row.getDate(index));
         if (javaType == BigDecimal.class)
             return row.getDecimal(index);
         if (javaType == Double.class)
