@@ -219,7 +219,7 @@ public abstract class AbstractCassandaTestElement extends AbstractTestElement im
                 else if (javaType == ByteBuffer.class)
                     pstmt.setBytes(i, ByteBuffer.wrap(hexStringToByteArray(argument)));
                 else if (javaType == Date.class) {
-                    if (argument.length() == CASSANDRA_DATE_FORMAT_STRING1.length())
+                    if (argument.length() == (CASSANDRA_DATE_FORMAT_STRING1 + "+ZZZ").length())
                         pstmt.setDate(i, CassandraDateFormat1.parse(argument));
                     else if (argument.length() == CASSANDRA_DATE_FORMAT_STRING2.length())
                         pstmt.setDate(i, CassandraDateFormat2.parse(argument));
