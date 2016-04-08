@@ -30,9 +30,9 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
     
         createPropertyGroup("varName", new String[] { "sessionName" });
 
-        createPropertyGroup("cluster", new String[] { "contactPoints", "keyspace", "username", "password" });
+        createPropertyGroup("cluster", new String[] { "contactPoints", "keyspace", "username", "password", "useSSL" });
 
-        createPropertyGroup("loadbalancergroup", new String[] { "loadBalancer", "localDataCenter" });
+        createPropertyGroup("loadbalancergroup", new String[]{"loadBalancer", "localDataCenter"});
 
         PropertyDescriptor p = property("contactPoints");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
@@ -65,5 +65,14 @@ public class CassandraConnectionBeanInfo extends BeanInfoSupport {
         p = property("localDataCenter");
         p.setValue(NOT_UNDEFINED, Boolean.TRUE);
         p.setValue(DEFAULT, "");
+
+        p = property("useSSL");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(NOT_OTHER,Boolean.TRUE);
+        p.setValue(TAGS,new String[]{
+                CassandraConnection.FALSE,
+                CassandraConnection.TRUE,
+                });
+        p.setValue(DEFAULT, CassandraConnection.FALSE);
     }
 }

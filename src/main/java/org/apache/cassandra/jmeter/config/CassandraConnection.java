@@ -42,12 +42,14 @@ public class CassandraConnection extends AbstractTestElement
     public static final String DC_TOKEN_AWARE = "TokenAware(DCAwareRoundRobin)";
     public static final String WHITELIST = "WhiteList";
     public static final String DEFAULTLOADBALANCER = "Default";
+    public static final String TRUE = "True";
+    public static final String FALSE = "False";
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     private static final long serialVersionUID = 233L;
 
-    private transient String contactPoints, keyspace, username, password, sessionName, loadBalancer, localDataCenter;
+    private transient String contactPoints, keyspace, username, password, sessionName, loadBalancer, localDataCenter, useSSL;
 
     private final transient Set<InetAddress> contactPointsI = new HashSet<InetAddress>();
     private final transient Set<InetSocketAddress> contactPointsIS = new HashSet<InetSocketAddress>();
@@ -79,6 +81,7 @@ public class CassandraConnection extends AbstractTestElement
         TestBeanHelper.prepare(this);
         JMeterVariables variables = getThreadContext().getVariables();
         LoadBalancingPolicy loadBalancingPolicy = null;
+        boolean useSSL_  = false;
 
         if (loadBalancer.contentEquals(DC_AWARE_ROUND_ROBIN)) {
             // in driver v2.0.2+, we can use the default constructor on
@@ -98,7 +101,11 @@ public class CassandraConnection extends AbstractTestElement
             loadBalancingPolicy = null;
         }
 
-        Session session = CassandraSessionFactory.createSession(sessionName, contactPointsI, keyspace, username, password, loadBalancingPolicy);
+        if (useSSL.contentEquals(CassandraConnection.TRUE)) {
+            useSSL_ = true;
+        }
+
+        Session session = CassandraSessionFactory.createSession(sessionName, contactPointsI, keyspace, username, password, loadBalancingPolicy, useSSL_);
 
         variables.putObject(sessionName, session);
     }
@@ -197,7 +204,11 @@ public class CassandraConnection extends AbstractTestElement
         return username;
     }
 
-    /**
+    public String getUseSSL() {
+        return useSSL;
+    }
+
+        /**
      * @param username
      *            The username to set.
      */
@@ -229,4 +240,8 @@ public class CassandraConnection extends AbstractTestElement
     public void setLocalDataCenter(String localDataCenter) {
         this.localDataCenter = localDataCenter;
     }
- }
+
+    public void setUseSSL(String useSSL) {
+        this.useSSL = useSSL;
+    }
+    }

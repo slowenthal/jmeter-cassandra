@@ -53,7 +53,7 @@ public class CassandraSessionFactory {
     return instance;
   }
 
-  public static synchronized Session createSession(String sessionKey, Set<InetAddress> host, String keyspace, String username, String password, LoadBalancingPolicy loadBalancingPolicy) {
+  public static synchronized Session createSession(String sessionKey, Set<InetAddress> host, String keyspace, String username, String password, LoadBalancingPolicy loadBalancingPolicy, boolean useSSL) {
 
     instance = getInstance();
     Session session = instance.sessions.get(sessionKey);
@@ -69,6 +69,10 @@ public class CassandraSessionFactory {
 
           if ( username != null && ! username.isEmpty()) {
               cb = cb.withCredentials(username, password);
+          }
+
+          if (useSSL) {
+              cb = cb.withSSL();
           }
 
           Cluster cluster = cb.build();
